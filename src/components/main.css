@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+.adminLoginBtn{
+    border:1px solid #595959;
+}
+.adminLoginBtn:hover{
+    color: blue;
+}
+.adminLogoutBtn{
+    padding:0;
+    line-height: 2vh;
+    background-color: transparent;
+    border: none;
+}
+.adminLogoutBtn:hover{
+    border: none;
+    padding:0;
+    line-height: 2vh;
+    background-color: transparent;
+}
+html, body, #root {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  
+  .container {
+    width: 100vw;
+    max-width: 100%;
+  }
+  
