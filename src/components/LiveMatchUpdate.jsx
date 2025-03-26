@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function LiveMatchUpdate({ isAdmin }) {
   const [teams, setTeams] = useState({ teamA: "Team A", teamB: "Team B" });
-  const [overs, setOvers] = useState("");
+  const [overs, setOvers] = useState({ teamA: 0, teamB: 0 });
   const [scores, setScores] = useState({ teamA: 0, teamB: 0 });
   const [overDetails, setOverDetails] = useState({ teamA: [], teamB: [] });
   const [activeOver, setActiveOver] = useState({ teamA: 0, teamB: 0 });
   const [tossWin, setTossWin] = useState("");
   const [optTo, setOptTo] = useState("");
+  const [wicket, setWickets] = useState(0);
+
+  const [currentInning, setCurrentInning] = useState(1); // 1 = First, 2 = Second
+  const [battingTeam, setBattingTeam] = useState(""); // Track batting team
+  const ballsPerOver = 6; // Legal balls per over
 
   const [activeOverUpdate, setActiveOverUpdate] = useState("0.0");
 
@@ -15,6 +20,16 @@ function LiveMatchUpdate({ isAdmin }) {
     teamA: Array(11).fill({ name: "", runs: 0, ballsFaced:0 }),
     teamB: Array(11).fill({ name: "", runs: 0, ballsFaced:0 })
   });
+
+  useEffect(() => {
+    if (tossWin && optTo) { // Only update when both values are set
+      if (optTo === "Bat First") {
+        setBattingTeam(tossWin); // Toss winner bats first
+      } else {
+        setBattingTeam(tossWin === teams.teamA ? teams.teamB : teams.teamA); // Other team bats first
+      }
+    }
+  }, [tossWin, optTo, teams]); // Depend on teams too in case team names change
 
   const handleTeamChange = (team, value) => {
     setTeams({ ...teams, [team]: value });
@@ -32,22 +47,38 @@ function LiveMatchUpdate({ isAdmin }) {
   const updateOver = (team, overIndex, ballIndex, value) => {
     let newBallIndex = ballIndex;
   
+    // Clone existing overs to avoid direct state mutation
+    const updatedOvers = [...overDetails[team]];
+  
     // Fetch previous ball (if exists)
-    const previousBall = overDetails[team][overIndex][ballIndex - 1] || "";
+    const previousBall = overDetails[team][overIndex]?.[ballIndex - 1] || "";
   
     // If the previous ball was No Ball or Wide Ball, keep the same ball index
     if (previousBall.toLowerCase() === "no ball" || previousBall.toLowerCase() === "wide ball") {
       newBallIndex = ballIndex;
     } else {
-      // If current ball is No Ball or Wide Ball, do not count it in ball progress
+      // If current ball is NOT No Ball or Wide Ball, increment ball index
       if (value.toLowerCase() !== "no ball" && value.toLowerCase() !== "wide ball" && value !== "") {
         newBallIndex = ballIndex + 1;
       }
     }
   
-    // Update state with the new over progress
-    setActiveOverUpdate(`${overIndex}.${newBallIndex}`);
+    // Update the ball entry in the team's overs
+    updatedOvers[overIndex][ballIndex] = value;
+  
+    // Update the state with the new overs
+    setOverDetails((prev) => ({
+      ...prev,
+      [team]: updatedOvers,
+    }));
+  
+    // Set the active over tracking state
+    setActiveOverUpdate((prev) => ({
+      ...prev,
+      [team]: `${overIndex}.${newBallIndex}`,
+    }));
   };
+  
 
   //Update score each over(Ball By Ball)
   const handleBallUpdate = (team, overIndex, ballIndex, value) => {
@@ -72,19 +103,42 @@ function LiveMatchUpdate({ isAdmin }) {
     if (validBalls.length === 6 && overIndex === activeOver[team] && overIndex < overs - 1) {
       setActiveOver((prev) => ({ ...prev, [team]: overIndex + 1 }));
     }
-  
+
     setOverDetails({ ...overDetails, [team]: updatedOvers });
   
-    // Calculate total score
+    // Calculate total score and total valid balls
     let totalScore = 0;
+    let totalWickets = 0;
+    let totalValidBalls = 0; // track valid deliveries
+
     updatedOvers.forEach((over) => {
       over.forEach((run) => {
-        if (!isNaN(run) && run !== "") totalScore += Number(run);
-        if (run.toLowerCase() === "no ball" || run.toLowerCase() === "wide ball") totalScore += 1;
+        if (!isNaN(run) && run !== "") {
+          totalScore += Number(run);
+          totalValidBalls += 1; // Count only legal deliveries
+        }
+
+        if (run.toLowerCase() === "no ball" || run.toLowerCase() === "wide ball") {
+          totalScore += 1; // Extras count towards score
+        } else if (run.toLowerCase() === "w") {
+          totalWickets += 1; // Count wickets
+          totalValidBalls += 1; // Wicket is a legal ball
+        }
       });
     });
+
+    // Check if set overs are completed   
+    console.log("Inning:: "+totalValidBalls+"Total Balls: "+(overs * ballsPerOver));
+    if (totalValidBalls >= overs * ballsPerOver) {
+      console.log("First Inning Done! Switching teams...");
+      
+      // Switch to the next inning
+      setCurrentInning(2);
+      setBattingTeam(battingTeam === "teamA" ? "teamB" : "teamA");
+    }
   
     setScores({ ...scores, [team]: totalScore });
+    setWickets((prevWickets) => ({ ...prevWickets, [team]: totalWickets }));
   };
 
   // Handle player score update
@@ -105,25 +159,43 @@ function LiveMatchUpdate({ isAdmin }) {
       {/* First Section */}
       <div className="bg-gray-100 p-4 rounded shadow-md">
         <h2 className="text-xl font-bold mb-2">Live Scoreboard</h2>
-        <div className="border-b-2 my-2 py-2">
-          <h4 className="text-lg font-semibold">{teams.teamA} Vs {teams.teamB}</h4>
-          <h5 className="text-sm font-semibold">Overs: {activeOverUpdate}</h5>
-          {tossWin != "" ? <h5 className="text-sm font-semibold">{tossWin} won the toss and opt to {optTo.toLowerCase()} </h5> : "" }
+        <div className="my-2 py-2">
+            {tossWin != "" ? <h5 className="text-sm font-semibold">{tossWin} won the toss and opt to {optTo.toLowerCase()} </h5> : "" }
+            <h2 className="text-xl font-bold mt-4"> {currentInning === 1 ? "First Inning in Progress" : "Second Inning in Progress"} </h2>
+            <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="grid grid-cols-2 gap-4 border-stone-400 border-1 p-2 rounded bg-stone-300">
+                    <div>
+                        <h4 className="text-lg font-semibold">{teams.teamA}</h4>
+                    </div>
+                    <div>
+                        <h4 className="text-lg font-semibold float-right">{scores.teamA} / {wicket.teamA} ({activeOverUpdate.teamA} Overs)</h4>
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 border-stone-400 border-1 p-2 rounded bg-stone-300">
+                    <div>
+                        <h4 className="text-lg font-semibold">{teams.teamB}</h4>
+                    </div>
+                    <div>
+                        <h4 className="text-lg font-semibold float-right">{scores.teamB} / {wicket.teamB}  ({activeOverUpdate.teamB} Overs)</h4>
+                    </div>
+                </div>
+            </div>
         </div>
+
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <h3 className="text-lg font-semibold">{teams.teamA} - {scores.teamA} Runs</h3>
+          <div className="border-1 border-sky-500/50 p-2 rounded-tl rounded-tr bg-sky-500/50">
+            <h3 className="text-lg font-semibold">{teams.teamA} Players</h3>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold">{teams.teamB} - {scores.teamB} Runs</h3>
+          <div className="border-1 border-sky-500/50 p-2 rounded-tl rounded-tr bg-sky-500/50">
+            <h3 className="text-lg font-semibold">{teams.teamB} Players</h3>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           {/* Team A */}
-          <div>
+          <div className="border-1 border-sky-500/50 px-2">
             <ul className="mt-4">
               {players.teamA.map((player, index) => (
-                <li key={index} className="border-b py-1">
+                <li key={index} className="py-1">
                   {player.name || `Player ${index + 1}`} - {player.runs} Runs
                 </li>
               ))}
@@ -131,10 +203,10 @@ function LiveMatchUpdate({ isAdmin }) {
           </div>
 
           {/* Team B */}
-          <div>
+          <div className="border-1 border-sky-500/50 px-2">
             <ul className="mt-4">
               {players.teamB.map((player, index) => (
-                <li key={index} className="border-b py-1">
+                <li key={index} className="py-1">
                   {player.name || `Player ${index + 1}`} - {player.runs} Runs
                 </li>
               ))}
@@ -180,55 +252,67 @@ function LiveMatchUpdate({ isAdmin }) {
             {/* Toss Time */}
             <div className="w-full md:w-auto md:mr-8">
                 <h2 className="text-l font-bold mt-8 mb-2">Toss Win By</h2>
-                <label className="pr-2 block md:inline-block">
-                <input
-                    className="mr-2"
-                    type="radio"
-                    name="toss"
-                    value={teams.teamA}
-                    checked={tossWin === teams.teamA}
-                    onChange={(e) => setTossWin(e.target.value)}
-                />
-                {teams.teamA}
-                </label>
-                <label className="pl-2 block md:inline-block">
-                <input
-                    className="mr-2"
-                    type="radio"
-                    name="toss"
-                    value={teams.teamB}
-                    checked={tossWin === teams.teamB}
-                    onChange={(e) => setTossWin(e.target.value)}
-                />
-                {teams.teamB}
-                </label>
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="pr-2 block md:inline-block">
+                    <input
+                        className="mr-2"
+                        type="radio"
+                        name="toss"
+                        value={teams.teamA}
+                        checked={tossWin === teams.teamA}
+                        onChange={(e) => setTossWin(e.target.value)}
+                    />
+                    {teams.teamA}
+                    </label>
+                  </div>
+                  <div>  
+                    <label className="pl-2 block md:inline-block">
+                    <input
+                        className="mr-2"
+                        type="radio"
+                        name="toss"
+                        value={teams.teamB}
+                        checked={tossWin === teams.teamB}
+                        onChange={(e) => setTossWin(e.target.value)}
+                    />
+                    {teams.teamB}
+                    </label>
+                  </div>
+                </div>
             </div>
 
             {/* Winning team Opt to */}
             <div className="w-full md:w-auto md:ml-8">
                 <h2 className="text-l font-bold mt-8 mb-2">and opt to</h2>
-                <label className="pr-2 block md:inline-block">
-                <input
-                    className="mr-2"
-                    type="radio"
-                    name="opt_to"
-                    value="Bat First"
-                    checked={optTo === "Bat First"}
-                    onChange={(e) => setOptTo(e.target.value)}
-                />
-                Bat First
-                </label>
-                <label className="pl-2 block md:inline-block">
-                <input
-                    className="mr-2"
-                    type="radio"
-                    name="opt_to"
-                    value="Bowled First"
-                    checked={optTo === "Bowled First"}
-                    onChange={(e) => setOptTo(e.target.value)}
-                />
-                Bowled First
-                </label>
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="pr-2 block md:inline-block">
+                    <input
+                        className="mr-2"
+                        type="radio"
+                        name="opt_to"
+                        value="Bat First"
+                        checked={optTo === "Bat First"}
+                        onChange={(e) => setOptTo(e.target.value)}
+                    />
+                    Bat First
+                    </label>
+                  </div> 
+                  <div>
+                    <label className="pl-2 block md:inline-block">
+                    <input
+                        className="mr-2"
+                        type="radio"
+                        name="opt_to"
+                        value="Bowled First"
+                        checked={optTo === "Bowled First"}
+                        onChange={(e) => setOptTo(e.target.value)}
+                    />
+                    Bowled First
+                    </label>
+                  </div>
+                </div>  
             </div>
         </div>
 
@@ -242,7 +326,8 @@ function LiveMatchUpdate({ isAdmin }) {
             {overDetails[team].map((over, overIndex) => (
               <div key={overIndex} className="mt-2">
                 <h4 className="font-semibold">Over {overIndex + 1}</h4>
-                <div className="flex space-x-2">
+                {/* {console.log(`Team: ${team}, Over Index: ${overIndex}, Active Over: ${activeOver[team]}`)} */}
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   {over.map((ball, ballIndex) => (
                     <input
                       max={6}
@@ -256,10 +341,12 @@ function LiveMatchUpdate({ isAdmin }) {
                         }
                       }}
                       onChange={(e) => handleBallUpdate(team, overIndex, ballIndex, e.target.value)}
-                      className={`border p-1 w-12 text-center ${
-                        overIndex > activeOver[team] || (tossWin === teams[team] && optTo === "Bat First") ? "bg-gray-300 cursor-not-allowed" : ""
+                      className={`border p-1 w-auto text-center ${ball.toLowerCase() !== "" && ball.toLowerCase() == "w" ? "wicketColor" : ""} ${ball.toLowerCase() !== "" && ball.toLowerCase() == "no ball" ? "noBallColor" : ""} ${ball.toLowerCase() !== "" && ball.toLowerCase() == "wide ball" ? "wideBallColor" : ""} ${
+                        overIndex > activeOver[team] || battingTeam == teams[team]
+                          ? "bg-gray-300 cursor-not-allowed" 
+                          : ""
                       }`}
-                      disabled={overIndex > activeOver[team] || (tossWin === teams[team] && optTo === "Bat First")}
+                      disabled={ overIndex > activeOver[team] || battingTeam == teams[team] }
                     />
                   ))}
                 </div>
@@ -275,6 +362,7 @@ function LiveMatchUpdate({ isAdmin }) {
           {Object.keys(players).map((team) => (
             <div key={team}>
               <h3 className="text-lg font-semibold">{teams[team]}</h3>
+              {/* {console.log(teams[team]+"//"+tossWin+"//"+optTo)} */}
               {players[team].map((player, index) => (
                 <div key={index} className="flex items-center space-x-2 py-1">
                   <input
@@ -283,9 +371,9 @@ function LiveMatchUpdate({ isAdmin }) {
                     value={players[team][index].name}
                     onChange={(e) => handleScoreUpdate(team, index, "name", e.target.value)}
                     className={`border p-1 w-1/2 ${
-                      tossWin !== teams[team] || optTo !== "Bat First" ? "bg-gray-300 cursor-not-allowed" : ""
+                      battingTeam !== teams[team] ? "bg-gray-300 cursor-not-allowed" : ""
                     }`}
-                    disabled={tossWin !== teams[team] || optTo !== "Bat First"}
+                    disabled={battingTeam !== teams[team]}
                   />
                   <input
                     type="number"
@@ -293,9 +381,9 @@ function LiveMatchUpdate({ isAdmin }) {
                     value={players[team][index].runs}
                     onChange={(e) => handleScoreUpdate(team, index, "runs", e.target.value)}
                     className={`border p-1 w-16 ${
-                      tossWin !== teams[team] || optTo !== "Bat First" ? "bg-gray-300 cursor-not-allowed" : ""
+                      battingTeam !== teams[team] ? "bg-gray-300 cursor-not-allowed" : ""
                     }`}
-                    disabled={tossWin !== teams[team] || optTo !== "Bat First"}
+                    disabled={battingTeam !== teams[team]}
                   />
                   {/* <input
                     type="number"
