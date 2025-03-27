@@ -1,14 +1,14 @@
 import { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import logo from "/src/assets/score-cart-with-name.png";
+import logo from "/src/assets/sclogo_transparent.png";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { isAdmin, logout } = useContext(AuthContext);
 
   return (
-    <nav className="bg-white text-black p-2 border-b border-gray-100">
+    <nav className="bg-[#ece5d5] text-black p-2 border-b border-gray-100">
       <div className="w-full max-w-full mx-auto flex justify-between items-center px-4">
         {/* Left Side - Logo */}
         <div className="text-2xl font-bold">

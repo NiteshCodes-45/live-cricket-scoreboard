@@ -1,6 +1,7 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import logo from "/src/assets/sclogo_transparent.png";
 
 export default function Login() {
   const [password, setPassword] = useState("");
@@ -16,6 +17,7 @@ export default function Login() {
   return (
     <div className="flex justify-center items-center mt-12">
       <div className="bg-white ring shadow-md rounded-lg p-6 text-center">
+        {/* <img className="w-auto h-12 md:h-14 lg:h-16" src={logo} alt="Score-Cart" /> */}
         <h2 className="text-2xl font-bold mb-4">Admin Login</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
