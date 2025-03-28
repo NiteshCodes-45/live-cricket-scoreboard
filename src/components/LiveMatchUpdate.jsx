@@ -9,7 +9,10 @@ function LiveMatchUpdate({ isAdmin }) {
   const [tossWin, setTossWin] = useState("");
   const [optTo, setOptTo] = useState("");
   const [wicket, setWickets] = useState(0);
-
+  
+  const [showPopup, setShowPopup] = useState(false);
+  const [winner, setWinner] = useState("");
+  
   const [currentInning, setCurrentInning] = useState(1); // 1 = First, 2 = Second
   const [battingTeam, setBattingTeam] = useState(""); // Track batting team
   const ballsPerOver = 6; // Legal balls per over
@@ -31,6 +34,33 @@ function LiveMatchUpdate({ isAdmin }) {
     }
   }, [tossWin, optTo, teams]); // Depend on teams too in case team names change
 
+  useEffect(() => {
+    if (currentInning === 2) {
+      const firstInningScore = scores[teams.teamA] || 0;
+      const secondInningScore = scores[teams.teamB] || 0;
+      const secondTeamWickets = wicket[teams.teamB] || 0;
+  
+      console.log("Checking Match Result...");
+      console.log(`First Innings Score: ${firstInningScore}`);
+      console.log(`Second Innings Score: ${secondInningScore}`);
+      console.log(`Second Team Wickets: ${secondTeamWickets}`);
+  
+      if (secondInningScore > firstInningScore) {
+        console.log(`${teams.teamB} Wins!`);
+        setWinner(`${teams.teamB} Wins! 🎉`);
+        setShowPopup(true);
+      } else if (secondTeamWickets === 10 && secondInningScore < firstInningScore) {
+        console.log(`${teams.teamA} Wins!`);
+        setWinner(`${teams.teamA} Wins! 🏆`);
+        setShowPopup(true);
+      } else if (secondInningScore === firstInningScore && secondTeamWickets === 10) {
+        console.log("Match Tied!");
+        setWinner("It's a Tie! 🤝");
+        setShowPopup(true);
+      }
+    }
+  }, [scores, wicket, currentInning, teams]); // Ensure effect re-runs on latest scores & wickets
+  
   const handleTeamChange = (team, value) => {
     setTeams({ ...teams, [team]: value });
   };
@@ -137,9 +167,34 @@ function LiveMatchUpdate({ isAdmin }) {
 
       setBattingTeam(battingTeam === teams.teamA ? teams.teamB : teams.teamA);
     }
+
+    setScores((prevScores) => {
+      const newScores = { ...prevScores, [team]: totalScore };
+      console.log("Updated Scores:", newScores);
+      return newScores;
+    });
+
+    setWickets((prevWickets) => {
+      const newWickets = { ...prevWickets, [team]: totalWickets };
+      console.log("Updated Wickets:", newWickets);
+      return newWickets;
+    });
   
-    setScores({ ...scores, [team]: totalScore });
-    setWickets((prevWickets) => ({ ...prevWickets, [team]: totalWickets }));
+    // setScores({ ...scores, [team]: totalScore });
+    // setWickets((prevWickets) => ({ ...prevWickets, [team]: totalWickets }));
+
+    // //**NEW MATCH OVER CONDITIONS**
+    // if (currentInning === 2) {
+    //   alert(scores.teamA+"///"+scores.teamB);
+    //   if (scores.teamA === scores.teamB) {
+    //     alert("Match Over! It's a Tie!");
+    //   } else if (totalWickets === 10) {
+    //     // Winning team logic
+    //     let winningTeam = scores.teamA > totalScore ? "Team A" : "Team B";
+    //     alert(`Match Over! ${winningTeam} Wins!`);
+    //   }
+    // }
+
   };
 
   // Handle player score update
@@ -157,6 +212,19 @@ function LiveMatchUpdate({ isAdmin }) {
 
   return (
     <div className="container mx-auto p-4">
+      {showPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+            <h2 className="text-xl font-bold">{winner}</h2>
+            <button 
+              onClick={() => setShowPopup(false)}
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}    
       {/* First Section */}
       <div className="bg-gray-100 p-4 rounded shadow-md">
         <h2 className="text-xl font-bold mb-2">Live Scoreboard</h2>
