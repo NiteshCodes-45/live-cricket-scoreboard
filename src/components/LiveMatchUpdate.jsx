@@ -192,7 +192,7 @@ function LiveMatchUpdate({ isAdmin }) {
       return newWickets;
     });
 
-    updateMatchData("First Match", { teamA: scores.teamA, teamB: scores.teamB, overs: overDetails });
+    updateMatchData(teams, { teamA: scores.teamA, teamB: scores.teamB, overs: overDetails });
 
     // setScores({ ...scores, [team]: totalScore });
     // setWickets((prevWickets) => ({ ...prevWickets, [team]: totalWickets }));
