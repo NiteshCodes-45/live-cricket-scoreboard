@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { db } from "../firebaseConfig";
 
 function LiveMatchUpdate({ isAdmin }) {
   const [teams, setTeams] = useState({ teamA: "Team A", teamB: "Team B" });
@@ -61,6 +63,16 @@ function LiveMatchUpdate({ isAdmin }) {
     }
   }, [scores, wicket, currentInning, teams]); // Ensure effect re-runs on latest scores & wickets
   
+  const updateMatchData = async (matchId, newData) => {
+    try {
+      const matchRef = doc(db, "matches", matchId);
+      await updateDoc(matchRef, newData);
+      console.log("Match data updated successfully!");
+    } catch (error) {
+      console.error("Error updating match data:", error);
+    }
+  };
+
   const handleTeamChange = (team, value) => {
     setTeams({ ...teams, [team]: value });
   };
@@ -179,7 +191,9 @@ function LiveMatchUpdate({ isAdmin }) {
       console.log("Updated Wickets:", newWickets);
       return newWickets;
     });
-  
+
+    updateMatchData("First Match", { teamA: scores.teamA, teamB: scores.teamB, overs: overDetails });
+
     // setScores({ ...scores, [team]: totalScore });
     // setWickets((prevWickets) => ({ ...prevWickets, [team]: totalWickets }));
 

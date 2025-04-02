@@ -1,0 +1,19 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getDatabase } from "firebase/database";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDh7HNtpoCQr3Vjhs2QOGvU8L2_uxxtITk",
+  authDomain: "livescorecart.firebaseapp.com",
+  projectId: "livescorecart",
+  storageBucket: "livescorecart.firebasestorage.app",
+  messagingSenderId: "1085509760094",
+  appId: "1:1085509760094:web:ca22113040a03d0fc4f0cf"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+export const db = getDatabase(app);
