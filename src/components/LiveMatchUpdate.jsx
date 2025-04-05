@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
 function LiveMatchUpdate({ isAdmin }) {
@@ -62,12 +62,26 @@ function LiveMatchUpdate({ isAdmin }) {
       }
     }
   }, [scores, wicket, currentInning, teams]); // Ensure effect re-runs on latest scores & wickets
+
+  const matchId = "abc123";
+
+  function debounce(func, delay) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => func(...args), delay);
+    };
+  }
+
+  const debouncedUpdate = debounce((newData) => {
+    updateMatchData(matchId, newData);
+  }, 500); // Delay: 500ms
   
   const updateMatchData = async (matchId, newData) => {
     try {
       const matchRef = doc(db, "matches", matchId);
-      await updateDoc(matchRef, newData);
-      console.log("Match data updated successfully!");
+      await setDoc(matchRef, newData, { merge: true }); //Will create or update
+      console.log("Match data saved successfully!");
     } catch (error) {
       console.error("Error updating match data:", error);
     }
@@ -82,6 +96,15 @@ function LiveMatchUpdate({ isAdmin }) {
     setOverDetails({
       teamA: Array.from({ length: value }, () => Array(6).fill("")),
       teamB: Array.from({ length: value }, () => Array(6).fill("")),
+    });
+    debouncedUpdate({
+      teams,
+      overs: value,
+      tossWin,
+      optTo,
+      scores,
+      wicket,
+      updatedAt: new Date(),
     });
   };
 
@@ -183,16 +206,30 @@ function LiveMatchUpdate({ isAdmin }) {
     setScores((prevScores) => {
       const newScores = { ...prevScores, [team]: totalScore };
       console.log("Updated Scores:", newScores);
+      debouncedUpdate({
+        teams,
+        overs,
+        tossWin,
+        scores:newScores,
+        wicket,
+        updatedAt: new Date(),
+      });
       return newScores;
     });
 
     setWickets((prevWickets) => {
       const newWickets = { ...prevWickets, [team]: totalWickets };
       console.log("Updated Wickets:", newWickets);
+      debouncedUpdate({
+        teams,
+        overs,
+        tossWin,
+        scores,
+        wicket: newWickets,
+        updatedAt: new Date(),
+      });
       return newWickets;
     });
-
-    updateMatchData(teams, { teamA: scores.teamA, teamB: scores.teamB, overs: overDetails });
 
     // setScores({ ...scores, [team]: totalScore });
     // setWickets((prevWickets) => ({ ...prevWickets, [team]: totalWickets }));
@@ -307,14 +344,42 @@ function LiveMatchUpdate({ isAdmin }) {
             type="text"
             placeholder="Team A Name"
             value={teams.teamA}
-            onChange={(e) => handleTeamChange("teamA", e.target.value)}
+            onChange={(e) => {
+              handleTeamChange("teamA", e.target.value)
+              const updatedTeams = { ...teams, teamA: e.target.value };
+              setTeams(updatedTeams);
+
+              debouncedUpdate({
+                teams: updatedTeams,
+                overs,
+                tossWin,
+                optTo,
+                scores,
+                wicket,
+                updatedAt: new Date(),
+              });
+            }}
             className="border p-2 w-1/2"
           />
           <input
             type="text"
             placeholder="Team B Name"
             value={teams.teamB}
-            onChange={(e) => handleTeamChange("teamB", e.target.value)}
+            onChange={(e) => { 
+              handleTeamChange("teamB", e.target.value) 
+              const updatedTeams = { ...teams, teamB: e.target.value };
+              setTeams(updatedTeams);
+
+              debouncedUpdate({
+                teams: updatedTeams,
+                overs,
+                tossWin,
+                optTo,
+                scores,
+                wicket,
+                updatedAt: new Date(),
+              });
+            }}
             className="border p-2 w-1/2"
           />
         </div>
@@ -331,6 +396,30 @@ function LiveMatchUpdate({ isAdmin }) {
                 className="border p-2 w-full"
                 />
             </div>
+            {/* <div className="w-full md:w-auto md:mr-8">
+                <h2 className="text-xl font-bold mt-6">Overs</h2>
+                <input
+                type="number"
+                placeholder="Total Overs"
+                value={overs.teamA}
+                onChange={(e) => { 
+                  handleOverChange(e.target.value);
+                  const updatedOvers = { ...overs, teamA: parseInt(e.target.value) || 0 };
+                  setOvers(updatedOvers);
+
+                  debouncedUpdate({
+                    teams,
+                    overs: updatedOvers,
+                    tossWin,
+                    optTo,
+                    scores,
+                    wicket,
+                    updatedAt: new Date(),
+                  });
+                }}
+                className="border p-2 w-full"
+                />
+            </div> */}
 
             {/* Toss Time */}
             <div className="w-full md:w-auto md:mr-8">
@@ -344,7 +433,20 @@ function LiveMatchUpdate({ isAdmin }) {
                         name="toss"
                         value={teams.teamA}
                         checked={tossWin === teams.teamA}
-                        onChange={(e) => setTossWin(e.target.value)}
+                        onChange={(e) => {
+                          const selectedTeam = e.target.value;
+                          setTossWin(selectedTeam);
+                  
+                          debouncedUpdate({
+                            teams,
+                            overs,
+                            tossWin: selectedTeam,
+                            optTo,
+                            scores,
+                            wicket,
+                            updatedAt: new Date(),
+                          });
+                        }}
                     />
                     {teams.teamA}
                     </label>
@@ -357,7 +459,20 @@ function LiveMatchUpdate({ isAdmin }) {
                         name="toss"
                         value={teams.teamB}
                         checked={tossWin === teams.teamB}
-                        onChange={(e) => setTossWin(e.target.value)}
+                        onChange={(e) => {
+                          const selectedTeam = e.target.value;
+                          setTossWin(selectedTeam);
+                  
+                          debouncedUpdate({
+                            teams,
+                            overs,
+                            tossWin: selectedTeam,
+                            optTo,
+                            scores,
+                            wicket,
+                            updatedAt: new Date(),
+                          });
+                        }}
                     />
                     {teams.teamB}
                     </label>
@@ -377,7 +492,21 @@ function LiveMatchUpdate({ isAdmin }) {
                         name="opt_to"
                         value="Bat First"
                         checked={optTo === "Bat First"}
-                        onChange={(e) => setOptTo(e.target.value)}
+                        // onChange={(e) => setOptTo(e.target.value)}
+                        onChange={(e) => {
+                          const selectedOptTo = e.target.value;
+                          setOptTo(selectedOptTo);
+                  
+                          debouncedUpdate({
+                            teams,
+                            overs,
+                            tossWin,
+                            optTo:selectedOptTo,
+                            scores,
+                            wicket,
+                            updatedAt: new Date(),
+                          });
+                        }}
                     />
                     Bat First
                     </label>
@@ -390,7 +519,21 @@ function LiveMatchUpdate({ isAdmin }) {
                         name="opt_to"
                         value="Bowled First"
                         checked={optTo === "Bowled First"}
-                        onChange={(e) => setOptTo(e.target.value)}
+                        // onChange={(e) => setOptTo(e.target.value)}
+                        onChange={(e) => {
+                          const selectedOptTo = e.target.value;
+                          setOptTo(selectedOptTo);
+                  
+                          debouncedUpdate({
+                            teams,
+                            overs,
+                            tossWin,
+                            optTo:selectedOptTo,
+                            scores,
+                            wicket,
+                            updatedAt: new Date(),
+                          });
+                        }}
                     />
                     Bowled First
                     </label>

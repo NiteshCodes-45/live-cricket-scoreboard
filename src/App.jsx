@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LiveMatchUpdate from "./components/LiveMatchUpdate";
+import LiveMatch from "./components/LiveMatch.jsx";
 import Navbar from './components/Navbar.jsx';
 import './components/main.css';
 import Login from "./pages/Login";
@@ -27,7 +28,7 @@ function App() {
                 {/* Landing/Homepage page */}
                 <Route path="/" element={<LiveMatchUpdate isAdmin={false} />} />
 
-                <Route path="/live-match" element={<LiveMatchUpdate isAdmin={false} />} />
+                <Route path="/live-match" element={<LiveMatch isAdmin={false} />} />
                 <Route path="/login" element={<Login />} />
 
                 {/* Protected Admin Route */}
