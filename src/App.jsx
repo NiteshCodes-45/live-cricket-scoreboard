@@ -26,7 +26,7 @@ function App() {
             <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
               <Routes>
                 {/* Landing/Homepage page */}
-                <Route path="/" element={<LiveMatchUpdate isAdmin={false} />} />
+                <Route path="/" element={<LiveMatch isAdmin={false} />} />
 
                 <Route path="/live-match" element={<LiveMatch isAdmin={false} />} />
                 <Route path="/login" element={<Login />} />

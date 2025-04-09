@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { doc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
+import { useState, useEffect, useCallback } from "react";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
 function LiveMatchUpdate({ isAdmin }) {
@@ -19,12 +19,56 @@ function LiveMatchUpdate({ isAdmin }) {
   const [battingTeam, setBattingTeam] = useState(""); // Track batting team
   const ballsPerOver = 6; // Legal balls per over
 
-  const [activeOverUpdate, setActiveOverUpdate] = useState("0.0");
+  const [activeOverUpdate, setActiveOverUpdate] = useState({ teamA: 0, teamB: 0 });
 
   const [players, setPlayers] = useState({
     teamA: Array(11).fill({ name: "", runs: 0, ballsFaced:0 }),
     teamB: Array(11).fill({ name: "", runs: 0, ballsFaced:0 })
   });
+
+  const matchId = "abc123";
+
+  function debounce(func, delay) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => func(...args), delay);
+    };
+  }
+
+  const debouncedUpdate = useCallback(
+    debounce((newData) => {
+      updateMatchData(matchId, newData);
+    }, 500),
+    []
+  );
+  
+  const updateMatchData = async (matchId, newData) => {
+    try {
+      console.log("Active Over Update:", activeOverUpdate);
+      const matchRef = doc(db, "matches", matchId);
+      await setDoc(matchRef, newData, { merge: true }); //Will create or update
+      // await updateDoc(matchRef, {
+      //   activeOverUpdate: activeOverUpdate,
+      //   updatedAt: new Date(),
+      // });
+      console.log("Match data saved successfully!");
+    } catch (error) {
+      console.error("Error updating match data:", error);
+    }
+  };
+
+  useEffect(() => {
+    const buildMatchUpdatePayload = () => ({
+      currentInning,
+      scores,
+      wicket,
+      activeOverUpdate,
+      updatedAt: new Date(),
+    });
+  
+    debouncedUpdate(buildMatchUpdatePayload());
+  }, [currentInning, activeOverUpdate, scores, wicket, debouncedUpdate]);
 
   useEffect(() => {
     if (tossWin && optTo) { // Only update when both values are set
@@ -35,7 +79,7 @@ function LiveMatchUpdate({ isAdmin }) {
       }
     }
   }, [tossWin, optTo, teams]); // Depend on teams too in case team names change
-
+  
   useEffect(() => {
     if (currentInning === 2) {
       const firstInningScore = scores[teams.teamA] || 0;
@@ -62,30 +106,6 @@ function LiveMatchUpdate({ isAdmin }) {
       }
     }
   }, [scores, wicket, currentInning, teams]); // Ensure effect re-runs on latest scores & wickets
-
-  const matchId = "abc123";
-
-  function debounce(func, delay) {
-    let timer;
-    return (...args) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => func(...args), delay);
-    };
-  }
-
-  const debouncedUpdate = debounce((newData) => {
-    updateMatchData(matchId, newData);
-  }, 500); // Delay: 500ms
-  
-  const updateMatchData = async (matchId, newData) => {
-    try {
-      const matchRef = doc(db, "matches", matchId);
-      await setDoc(matchRef, newData, { merge: true }); //Will create or update
-      console.log("Match data saved successfully!");
-    } catch (error) {
-      console.error("Error updating match data:", error);
-    }
-  };
 
   const handleTeamChange = (team, value) => {
     setTeams({ ...teams, [team]: value });
@@ -199,27 +219,26 @@ function LiveMatchUpdate({ isAdmin }) {
       
       // Switch to the next inning
       setCurrentInning(2);
-
       setBattingTeam(battingTeam === teams.teamA ? teams.teamB : teams.teamA);
     }
 
     setScores((prevScores) => {
       const newScores = { ...prevScores, [team]: totalScore };
-      console.log("Updated Scores:", newScores);
-      debouncedUpdate({
-        teams,
-        overs,
-        tossWin,
-        scores:newScores,
-        wicket,
-        updatedAt: new Date(),
-      });
+      //console.log("Updated Scores:", newScores);
+      // debouncedUpdate({
+      //   teams,
+      //   overs,
+      //   tossWin,
+      //   scores:newScores,
+      //   wicket,
+      //   updatedAt: new Date(),
+      // });
       return newScores;
     });
 
     setWickets((prevWickets) => {
       const newWickets = { ...prevWickets, [team]: totalWickets };
-      console.log("Updated Wickets:", newWickets);
+      //console.log("Updated Wickets:", newWickets);
       debouncedUpdate({
         teams,
         overs,
@@ -247,6 +266,18 @@ function LiveMatchUpdate({ isAdmin }) {
     // }
 
   };
+
+  // useEffect(() => {
+  //   if (overDetails && activeOver && currentInning) {
+  //     debouncedUpdate({
+  //       overDetails,
+  //       activeOver,
+  //       activeOverUpdate,
+  //       currentInning,
+  //       updatedAt: new Date(),
+  //     });
+  //   }
+  // }, [overDetails, activeOver, activeOverUpdate, currentInning, debouncedUpdate]);
 
   // Handle player score update
   const handleScoreUpdate = (team, index, field, value) => {
