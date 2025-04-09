@@ -11,7 +11,8 @@ const firebaseConfig = {
   projectId: "livescorecart",
   storageBucket: "livescorecart.firebasestorage.app",
   messagingSenderId: "1085509760094",
-  appId: "1:1085509760094:web:ca22113040a03d0fc4f0cf"
+  appId: "1:1085509760094:web:ca22113040a03d0fc4f0cf",
+  databaseURL: "https://1:1085509760094:web:ca22113040a03d0fc4f0cf.firebaseio.com",
 };
 
 const app = initializeApp(firebaseConfig);
