@@ -32,40 +32,50 @@ const LiveMatch = ({ matchId = "abc123" }) => {
                             {matchData.tossWin} won the toss and opt to {matchData.optTo.toLowerCase()} 
                         </span>
                     </h5> : "" }
-                    
-                    { matchData.battingTeam != "" ? 
-                    <div class="text-center">
-                        <h2 class="text-lg font-bold text-red-600"> 
-                            {matchData.currentInning === 1 ? "First Inning in Progress" : "Second Inning in Progress"} 
-                        </h2>
-                    </div> : "" }
+                    { matchData.winner == "" ? <div class="text-center">
+                    { matchData.battingTeam != "" ? <h2 class="text-lg font-bold text-red-600"> {matchData.currentInning === 1 ? "First Inning in Progress" : "Second Inning in Progress"} </h2> : "" }
+                    </div> : <div class="text-center py-2"><p className="text-violet-500 font-semibold text-lg rounded py-2">{matchData.winner} Congratulations 🎉</p></div> }
+
                     <div className="grid grid-cols-2 gap-4 mt-4">
-                        <div className="grid grid-cols-2 gap-4 border-stone-400 border-1 p-2 rounded bg-stone-300">
-                            <div>
-                                <h4 className="text-lg font-semibold">{matchData.teams.teamA}</h4>
+                        <div className={`grid grid-cols-3 gap-4 border-stone-400 border-1 p-2 rounded ${matchData.battingTeam == matchData.teams.teamA ? "bg-green-300" : "bg-stone-300" }`}>
+                            <div className="col-span-1">
+                                <h4 className="text-sm font-semibold">{matchData.teams.teamA}</h4>
                             </div>
-                            <div>
-                                <h4 className="text-lg font-semibold float-right">{matchData.scores.teamA} / {matchData.wicket.teamA} ( { matchData.activeOverUpdate.teamA } Overs)</h4>
+                            <div className="col-span-2">
+                                <h4 className="text-sm font-semibold float-right">{matchData.scores.teamA} / {matchData.wicket.teamA} ( { matchData.activeOverUpdate.teamA } Overs)</h4>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 border-stone-400 border-1 p-2 rounded bg-stone-300">
-                            <div>
-                                <h4 className="text-lg font-semibold">{matchData.teams.teamB}</h4>
+                        <div className={`grid grid-cols-3 gap-4 border-stone-400 border-1 p-2 rounded ${matchData.battingTeam == matchData.teams.teamB ? "bg-green-300" : "bg-stone-300" }`}>
+                            <div className="col-span-1">
+                                <h4 className="text-sm font-semibold">{matchData.teams.teamB}</h4>
                             </div>
-                            <div>
-                                <h4 className="text-lg font-semibold float-right">{matchData.scores.teamB} / {matchData.wicket.teamB} ( { matchData.activeOverUpdate.teamB } Overs)</h4>
+                            <div className="col-span-2">
+                                <h4 className="text-sm font-semibold float-right">{matchData.scores.teamB} / {matchData.wicket.teamB} ( { matchData.activeOverUpdate.teamB } Overs)</h4>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="grid grid-cols-2 px-4 py-3 gap-4">
-                    <div className="border-1 border-sky-500/50 p-2 rounded-tl rounded-tr bg-sky-500/50">
-                        <h3 className="text-lg font-semibold">{matchData.teams.teamA} Players</h3>
-                    </div>
-                    <div className="border-1 border-sky-500/50 p-2 rounded-tl rounded-tr bg-sky-500/50">
-                        <h3 className="text-lg font-semibold">{matchData.teams.teamB} Players</h3>
+                <div className="px-4 gap-4">
+                    <div className="grid md:grid-cols-4 gap-4">
+                    {Object.keys(matchData.players).map((team) => (
+                        <div className="col-span-2" key={team}>
+                            <div className="border-1 border-sky-500/50 p-2 rounded-tl rounded-tr bg-sky-500/50 text-center">
+                                <h3 className="text-sm font-semibold">Team {matchData.teams[team]} Players</h3>
+                            </div>
+                            <div className="border-1 border-sky-500/50 px-2">
+                                <ul className="mt-4">
+                                {matchData.players[team].map((player, index) => (
+                                    <li key={index} className="py-1">
+                                    {player.name || `Player ${index + 1}`} - {player.runs} Runs
+                                    </li>
+                                ))}
+                                </ul>
+                            </div>
+                        </div>
+                    ))}
                     </div>
                 </div>
+                
             </div>
         ) : (
             <div className="text-center mt-5">

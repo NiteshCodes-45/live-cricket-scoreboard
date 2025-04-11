@@ -3,7 +3,7 @@ import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
 function LiveMatchUpdate({ isAdmin }) {
-  const [teams, setTeams] = useState({ teamA: "Team A", teamB: "Team B" });
+  const [teams, setTeams] = useState({ teamA: "", teamB: "" });
   const [overs, setOvers] = useState({ teamA: 0, teamB: 0 });
   const [scores, setScores] = useState({ teamA: 0, teamB: 0 });
   const [overDetails, setOverDetails] = useState({ teamA: [], teamB: [] });
@@ -21,9 +21,14 @@ function LiveMatchUpdate({ isAdmin }) {
 
   const [activeOverUpdate, setActiveOverUpdate] = useState({ teamA: 0, teamB: 0 });
 
+  // const [players, setPlayers] = useState({
+  //   teamA: Array(11).fill({ name: "", runs: 0, ballsFaced:0 }),
+  //   teamB: Array(11).fill({ name: "", runs: 0, ballsFaced:0 })
+  // });
+
   const [players, setPlayers] = useState({
-    teamA: Array(11).fill({ name: "", runs: 0, ballsFaced:0 }),
-    teamB: Array(11).fill({ name: "", runs: 0, ballsFaced:0 })
+    teamA: Array.from({ length: 11 }, () => ({ name: "", runs: 0})),
+    teamB: Array.from({ length: 11 }, () => ({ name: "", runs: 0})),
   });
 
   const matchId = "abc123";
@@ -40,35 +45,60 @@ function LiveMatchUpdate({ isAdmin }) {
     debounce((newData) => {
       updateMatchData(matchId, newData);
     }, 500),
-    []
+    [matchId]
+  );
+
+  const debouncedUpdatePlayer = useCallback(
+    debounce((newData) => {
+      updatePlayerData(matchId, newData);
+    }, 500),
+    [matchId]
   );
   
   const updateMatchData = async (matchId, newData) => {
     try {
-      console.log("Active Over Update:", activeOverUpdate);
       const matchRef = doc(db, "matches", matchId);
       await setDoc(matchRef, newData, { merge: true }); //Will create or update
-      // await updateDoc(matchRef, {
-      //   activeOverUpdate: activeOverUpdate,
-      //   updatedAt: new Date(),
-      // });
       console.log("Match data saved successfully!");
     } catch (error) {
       console.error("Error updating match data:", error);
     }
   };
 
+  const updatePlayerData = async (matchId, newData) => {
+    try {
+      console.log("Players Score:", players);
+      const matchRef = doc(db, "matches", matchId);
+      await updateDoc(matchRef, newData);
+      console.log("Player data saved successfully!");
+    } catch (error) {
+      console.error("Error updating player data:", error);
+    }
+  };
+
   useEffect(() => {
     const buildMatchUpdatePayload = () => ({
+      optTo,
+      battingTeam,
       currentInning,
       scores,
       wicket,
       activeOverUpdate,
+      winner,
       updatedAt: new Date(),
     });
   
     debouncedUpdate(buildMatchUpdatePayload());
-  }, [currentInning, activeOverUpdate, scores, wicket, debouncedUpdate]);
+  }, [optTo, battingTeam, currentInning, activeOverUpdate, scores, wicket, winner, debouncedUpdate]);
+
+  useEffect(() => {
+    const buildPlayerUpdatePayload = () => ({
+      players,
+      updatedAt: new Date(),
+    });
+  
+    debouncedUpdatePlayer(buildPlayerUpdatePayload());
+  }, [players, debouncedUpdatePlayer]);
 
   useEffect(() => {
     if (tossWin && optTo) { // Only update when both values are set
@@ -82,33 +112,39 @@ function LiveMatchUpdate({ isAdmin }) {
   
   useEffect(() => {
     if (currentInning === 2) {
-      const firstInningScore = scores[teams.teamA] || 0;
-      const secondInningScore = scores[teams.teamB] || 0;
-      const secondTeamWickets = wicket[teams.teamB] || 0;
-  
-      console.log("Checking Match Result...");
-      console.log(`First Innings Score: ${firstInningScore}`);
-      console.log(`Second Innings Score: ${secondInningScore}`);
-      console.log(`Second Team Wickets: ${secondTeamWickets}`);
+      const firstInningScore = scores.teamA || 0;
+      const secondInningScore = scores.teamB || 0;
+      const secondTeamWickets = wicket.teamB || 0;
   
       if (secondInningScore > firstInningScore) {
         console.log(`${teams.teamB} Wins!`);
-        setWinner(`${teams.teamB} Wins! 🎉`);
+        setWinner(`${teams.teamB} Wins!`);
         setShowPopup(true);
-      } else if (secondTeamWickets === 10 && secondInningScore < firstInningScore) {
+      }else if (secondInningScore < firstInningScore) {
         console.log(`${teams.teamA} Wins!`);
         setWinner(`${teams.teamA} Wins! 🏆`);
         setShowPopup(true);
-      } else if (secondInningScore === firstInningScore && secondTeamWickets === 10) {
+      }else if (secondInningScore === firstInningScore && secondTeamWickets === 10) {
         console.log("Match Tied!");
         setWinner("It's a Tie! 🤝");
         setShowPopup(true);
       }
+
+      // else if (secondTeamWickets === 10 && secondInningScore < firstInningScore) {
+      //   console.log(`${teams.teamA} Wins!`);
+      //   setWinner(`${teams.teamA} Wins! 🏆`);
+      //   setShowPopup(true);
+      // }
+
     }
   }, [scores, wicket, currentInning, teams]); // Ensure effect re-runs on latest scores & wickets
 
   const handleTeamChange = (team, value) => {
-    setTeams({ ...teams, [team]: value });
+    //setTeams({ ...teams, [team]: value });
+    setTeams((prevTeams) => ({
+      ...prevTeams,
+      [team]: value,
+    }));
   };
 
   const handleOverChange = (value) => {
@@ -225,14 +261,6 @@ function LiveMatchUpdate({ isAdmin }) {
     setScores((prevScores) => {
       const newScores = { ...prevScores, [team]: totalScore };
       //console.log("Updated Scores:", newScores);
-      // debouncedUpdate({
-      //   teams,
-      //   overs,
-      //   tossWin,
-      //   scores:newScores,
-      //   wicket,
-      //   updatedAt: new Date(),
-      // });
       return newScores;
     });
 
@@ -249,35 +277,7 @@ function LiveMatchUpdate({ isAdmin }) {
       });
       return newWickets;
     });
-
-    // setScores({ ...scores, [team]: totalScore });
-    // setWickets((prevWickets) => ({ ...prevWickets, [team]: totalWickets }));
-
-    // //**NEW MATCH OVER CONDITIONS**
-    // if (currentInning === 2) {
-    //   alert(scores.teamA+"///"+scores.teamB);
-    //   if (scores.teamA === scores.teamB) {
-    //     alert("Match Over! It's a Tie!");
-    //   } else if (totalWickets === 10) {
-    //     // Winning team logic
-    //     let winningTeam = scores.teamA > totalScore ? "Team A" : "Team B";
-    //     alert(`Match Over! ${winningTeam} Wins!`);
-    //   }
-    // }
-
   };
-
-  // useEffect(() => {
-  //   if (overDetails && activeOver && currentInning) {
-  //     debouncedUpdate({
-  //       overDetails,
-  //       activeOver,
-  //       activeOverUpdate,
-  //       currentInning,
-  //       updatedAt: new Date(),
-  //     });
-  //   }
-  // }, [overDetails, activeOver, activeOverUpdate, currentInning, debouncedUpdate]);
 
   // Handle player score update
   const handleScoreUpdate = (team, index, field, value) => {
@@ -290,44 +290,61 @@ function LiveMatchUpdate({ isAdmin }) {
     // const totalScore = updatedPlayers.reduce((sum, p) => sum + Number(p.runs), 0);
     // setScores({ ...scores, [team]: totalScore });
 
+    debouncedUpdate({
+      players:players,
+      updatedAt: new Date(),
+    });
+
   };
 
+  // Validation Functions
+  const cleanInput = (value) => {
+    return value.replace(/[^a-zA-Z0-9 \-;]/g, "");
+  };
+
+  const areTeamsFilled = teams.teamA.trim() !== "" && teams.teamB.trim() !== "";
+  const isTossHappen = tossWin.trim() !== "";
+  const areOversFilled = overs.teamA !== 0 && overs.teamB !== 0;
+
   return (
-    <div className="container mx-auto p-4">
+    <div className="container grid grid-cols-1 md:grid-cols-5 gap-4 mx-auto pt-4">
       {showPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="col-span-1 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
             <h2 className="text-xl font-bold">{winner}</h2>
             <button 
               onClick={() => setShowPopup(false)}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md"
-            >
-              Close
+              className="mt-4 px-2 py-2 bg-blue-500 font-extrabold text-center text-gray-800 border-2 border-stone-400 rounded-md">
+              Match Finish
             </button>
           </div>
         </div>
       )}    
       {/* First Section */}
-      <div className="bg-gray-100 p-4 rounded shadow-md">
-        <h2 className="text-xl font-bold mb-2">Live Scoreboard</h2>
+      <div className="grid-cols-1 md:col-span-2 bg-gray-100 p-4 rounded shadow-md">
+        <h2 className="text-xl font-bold mb-2 text-center">LIVE SCORE BOARD</h2>
         <div className="my-2 py-2">
-            { tossWin != "" ? <h5 className="text-sm font-semibold">{tossWin} won the toss and opt to {optTo.toLowerCase()} </h5> : "" }
-            { battingTeam != "" ? <h2 className="text-xl font-bold mt-4"> {currentInning === 1 ? "First Inning in Progress" : "Second Inning in Progress"} </h2> : "" }
+            { areTeamsFilled ? <h2 class="text-2xl font-extrabold text-center text-gray-800 mb-4">{teams.teamA} 🆚 {teams.teamB}</h2> : "" }
+            { tossWin != "" ? <h5 className="text-base font-medium text-gray-700 text-center">
+              <span class="font-semibold text-blue-600">{tossWin} won the toss and opt to {optTo.toLowerCase()} </span></h5> : "" }
+              { winner == "" ? <div class="text-center">
+            { battingTeam != "" ? <h2 class="text-lg font-bold text-red-600"> {currentInning === 1 ? "First Inning in Progress" : "Second Inning in Progress"} </h2> : "" }
+            </div> : <div class="text-center py-2"><p className="text-violet-500 font-semibold text-lg border-stone-400 border-1 rounded py-2">{winner} Congratulations 🎉</p></div> }
             <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="grid grid-cols-2 gap-4 border-stone-400 border-1 p-2 rounded bg-stone-300">
-                    <div>
-                        <h4 className="text-lg font-semibold">{teams.teamA}</h4>
+                <div className={`grid grid-cols-3 gap-4 border-stone-400 border-1 p-2 rounded ${battingTeam == teams.teamA ? "bg-green-300" : "bg-stone-300" }`}>
+                    <div className="col-span-1">
+                        <h4 className="text-sm md:text-base font-semibold">{teams.teamA}</h4>
                     </div>
-                    <div>
-                        <h4 className="text-lg font-semibold float-right">{scores.teamA} / {wicket.teamA} ({activeOverUpdate.teamA} Overs)</h4>
+                    <div className="col-span-2">
+                        <h4 className="text-sm md:text-base font-semibold float-right">{scores.teamA} / {wicket.teamA} ({activeOverUpdate.teamA} Overs)</h4>
                     </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 border-stone-400 border-1 p-2 rounded bg-stone-300">
-                    <div>
-                        <h4 className="text-lg font-semibold">{teams.teamB}</h4>
+                <div className={`grid grid-cols-3 gap-4 border-stone-400 border-1 p-2 rounded ${battingTeam == teams.teamB ? "bg-green-300" : "bg-stone-300" }`}>
+                    <div className="col-span-1">
+                        <h4 className="text-sm md:text-base font-semibold">{teams.teamB}</h4>
                     </div>
-                    <div>
-                        <h4 className="text-lg font-semibold float-right">{scores.teamB} / {wicket.teamB}  ({activeOverUpdate.teamB} Overs)</h4>
+                    <div className="col-span-2">
+                        <h4 className="text-sm md:text-base font-semibold float-right">{scores.teamB} / {wicket.teamB}  ({activeOverUpdate.teamB} Overs)</h4>
                     </div>
                 </div>
             </div>
@@ -335,10 +352,10 @@ function LiveMatchUpdate({ isAdmin }) {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="border-1 border-sky-500/50 p-2 rounded-tl rounded-tr bg-sky-500/50">
-            <h3 className="text-lg font-semibold">{teams.teamA} Players</h3>
+            <h3 className="text-sm md:text-base font-semibold">{teams.teamA} Players</h3>
           </div>
           <div className="border-1 border-sky-500/50 p-2 rounded-tl rounded-tr bg-sky-500/50">
-            <h3 className="text-lg font-semibold">{teams.teamB} Players</h3>
+            <h3 className="text-sm md:text-base font-semibold">{teams.teamB} Players</h3>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -368,16 +385,17 @@ function LiveMatchUpdate({ isAdmin }) {
     
     {/* Second Section */}
     {isAdmin && (
-      <div className="mt-6 bg-white p-4 rounded shadow-md">
-        <h3 className="text-xl font-bold mb-2">Match Between</h3>
+      <div className="grid-cols-1 md:col-span-3 bg-white p-4 rounded shadow-md">
+        <h3 className="text-xl font-bold mb-2">Team Names</h3>
         <div className="flex space-x-4">
           <input
             type="text"
             placeholder="Team A Name"
             value={teams.teamA}
             onChange={(e) => {
-              handleTeamChange("teamA", e.target.value)
-              const updatedTeams = { ...teams, teamA: e.target.value };
+              const teamAName = cleanInput(e.target.value);
+              handleTeamChange("teamA", teamAName);
+              const updatedTeams = { ...teams, teamA: teamAName };
               setTeams(updatedTeams);
 
               debouncedUpdate({
@@ -397,8 +415,9 @@ function LiveMatchUpdate({ isAdmin }) {
             placeholder="Team B Name"
             value={teams.teamB}
             onChange={(e) => { 
-              handleTeamChange("teamB", e.target.value) 
-              const updatedTeams = { ...teams, teamB: e.target.value };
+              const teamBName = cleanInput(e.target.value);
+              handleTeamChange("teamB", teamBName);
+              const updatedTeams = { ...teams, teamB: teamBName };
               setTeams(updatedTeams);
 
               debouncedUpdate({
@@ -422,6 +441,7 @@ function LiveMatchUpdate({ isAdmin }) {
                 <input
                 type="number"
                 placeholder="Total Overs"
+                disabled={!areTeamsFilled}
                 value={overs}
                 onChange={(e) => handleOverChange(e.target.value)}
                 className="border p-2 w-full"
@@ -453,6 +473,7 @@ function LiveMatchUpdate({ isAdmin }) {
             </div> */}
 
             {/* Toss Time */}
+            { areTeamsFilled ? 
             <div className="w-full md:w-auto md:mr-8">
                 <h2 className="text-l font-bold mt-8 mb-2">Toss Win By</h2>
                 <div className="mt-4 grid grid-cols-2 gap-4">
@@ -510,8 +531,13 @@ function LiveMatchUpdate({ isAdmin }) {
                   </div>
                 </div>
             </div>
+            : <div className="w-full md:w-auto md:mr-8">
+                <p className="text-l font-bold mt-15 mb-2">Toss Winner Update...</p>
+              </div> 
+            }
 
             {/* Winning team Opt to */}
+            { isTossHappen ?
             <div className="w-full md:w-auto md:ml-8">
                 <h2 className="text-l font-bold mt-8 mb-2">and opt to</h2>
                 <div className="mt-4 grid grid-cols-2 gap-4">
@@ -571,12 +597,18 @@ function LiveMatchUpdate({ isAdmin }) {
                   </div>
                 </div>  
             </div>
+            : <div className="w-full md:w-auto md:mr-8">
+                <p className="text-l font-bold mt-5 md:mt-15 mb-2 md:ml-5">Toss Winner Choose To...</p>
+              </div> 
+            }
         </div>
 
 
         {/* Over Breakdown */}
-        <h2 className="text-xl font-bold mt-6">Over Breakdown</h2>
-        <div className="mt-4 grid grid-cols-2 gap-4">
+        { areOversFilled ?
+        <>
+          <h2 className="text-xl font-bold mt-6">Over Breakdown</h2>
+          <div className="mt-4 grid md:grid-cols-2 gap-4">
         {Object.keys(overDetails).map((team) => (
           <div key={team} className="mt-4">
             <h3 className="text-lg font-semibold">{teams[team]}</h3>
@@ -611,14 +643,15 @@ function LiveMatchUpdate({ isAdmin }) {
             ))}
           </div>
         ))}
-        </div>
+          </div>
+        </> : ""}
 
         {/* Update Scores Manually */}
         <h2 className="text-xl font-bold mt-6">Players Name & Score</h2>
-        <div className="mt-4 grid grid-cols-2 gap-4">
+        <div className="mt-4 grid md:grid-cols-2 gap-4">
           {Object.keys(players).map((team) => (
             <div key={team}>
-              <h3 className="text-lg font-semibold">{teams[team]}</h3>
+              <h3 className="text-lg font-semibold">Team {teams[team]}</h3>
               {/* {console.log(teams[team]+"//"+tossWin+"//"+optTo)} */}
               {players[team].map((player, index) => (
                 <div key={index} className="flex items-center space-x-2 py-1">
@@ -637,7 +670,7 @@ function LiveMatchUpdate({ isAdmin }) {
                     placeholder="Runs"
                     value={players[team][index].runs}
                     onChange={(e) => handleScoreUpdate(team, index, "runs", e.target.value)}
-                    className={`border p-1 w-16 ${
+                    className={`border p-1 w-1/2 ${
                       battingTeam !== teams[team] ? "bg-gray-300 cursor-not-allowed" : ""
                     }`}
                     disabled={battingTeam !== teams[team]}
