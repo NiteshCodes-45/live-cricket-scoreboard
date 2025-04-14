@@ -12,7 +12,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = (password) => {
-    if (password === "Nitesh@45") {  // ✅ Change this to a more secure method later
+    if (password === "Nitesh@45") {
       setIsAdmin(true);
       localStorage.setItem("isAdmin", "true");
     }

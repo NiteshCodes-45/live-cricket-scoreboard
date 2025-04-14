@@ -18,6 +18,23 @@
     line-height: 2vh;
     background-color: transparent;
 }
+.matchOverBtn{
+    padding:1vh 1.5vh;
+    line-height: 0vh;
+    height: 4vh;
+    max-height: 4vh;
+    background-color: red;
+    border: none;
+    border-radius: 2px;
+}
+.matchOverBtn:hover{
+    border: none;
+    padding:1vh 1.5vh;
+    line-height: 0vh;
+    height: 4vh;
+    max-height: 4vh;
+    background-color: red;
+}
 html, body, #root {
     width: 100%;
     min-height: 100vh;

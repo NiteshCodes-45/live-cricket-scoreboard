@@ -11,24 +11,19 @@ function LiveMatchUpdate({ isAdmin }) {
   const [tossWin, setTossWin] = useState("");
   const [optTo, setOptTo] = useState("");
   const [wicket, setWickets] = useState(0);
-  
   const [showPopup, setShowPopup] = useState(false);
   const [winner, setWinner] = useState("");
-  
   const [currentInning, setCurrentInning] = useState(1); // 1 = First, 2 = Second
   const [battingTeam, setBattingTeam] = useState(""); // Track batting team
+  const [firstBattedTeam, setFirstBattedTeam] = useState(""); 
+  const [isOversCompleted, setIsOversCompleted] = useState(false);
+
   const ballsPerOver = 6; // Legal balls per over
-
   const [activeOverUpdate, setActiveOverUpdate] = useState({ teamA: 0, teamB: 0 });
-
-  // const [players, setPlayers] = useState({
-  //   teamA: Array(11).fill({ name: "", runs: 0, ballsFaced:0 }),
-  //   teamB: Array(11).fill({ name: "", runs: 0, ballsFaced:0 })
-  // });
-
+  const [prematureMatchOver, setPrematureMatchOver] = useState(false);
   const [players, setPlayers] = useState({
-    teamA: Array.from({ length: 11 }, () => ({ name: "", runs: 0})),
-    teamB: Array.from({ length: 11 }, () => ({ name: "", runs: 0})),
+    teamA: Array.from({ length: 11 }, () => ({ name: "", runs: 0, ballsFaced:0})),  
+    teamB: Array.from({ length: 11 }, () => ({ name: "", runs: 0, ballsFaced:0})),
   });
 
   const matchId = "abc123";
@@ -104,40 +99,45 @@ function LiveMatchUpdate({ isAdmin }) {
     if (tossWin && optTo) { // Only update when both values are set
       if (optTo === "Bat First") {
         setBattingTeam(tossWin); // Toss winner bats first
+        setFirstBattedTeam(tossWin);
       } else {
         setBattingTeam(tossWin === teams.teamA ? teams.teamB : teams.teamA); // Other team bats first
+        setFirstBattedTeam(tossWin === teams.teamA ? teams.teamB : teams.teamA);
       }
     }
   }, [tossWin, optTo, teams]); // Depend on teams too in case team names change
   
   useEffect(() => {
     if (currentInning === 2) {
-      const firstInningScore = scores.teamA || 0;
-      const secondInningScore = scores.teamB || 0;
-      const secondTeamWickets = wicket.teamB || 0;
+      const firstBattingTeamName = firstBattedTeam;
+      const secondBattingTeamName = battingTeam;
   
-      if (secondInningScore > firstInningScore) {
-        console.log(`${teams.teamB} Wins!`);
-        setWinner(`${teams.teamB} Wins!`);
-        setShowPopup(true);
-      }else if (secondInningScore < firstInningScore) {
-        console.log(`${teams.teamA} Wins!`);
-        setWinner(`${teams.teamA} Wins! 🏆`);
-        setShowPopup(true);
-      }else if (secondInningScore === firstInningScore && secondTeamWickets === 10) {
-        console.log("Match Tied!");
-        setWinner("It's a Tie! 🤝");
-        setShowPopup(true);
+      console.log("firstBattingTeamName", firstBattingTeamName);
+      console.log("secondBattingTeamName", secondBattingTeamName);
+  
+      const firstInningScore = firstBattingTeamName === teams.teamA ? scores.teamA : scores.teamB;
+      const secondInningScore = secondBattingTeamName === teams.teamA ? scores.teamA : scores.teamB;
+      const secondTeamWickets = secondBattingTeamName === teams.teamA ? wicket.teamA : wicket.teamB;
+  
+      const matchOver = prematureMatchOver || secondTeamWickets === 10 || isOversCompleted;
+  
+      if (matchOver) {
+        if (secondInningScore > firstInningScore) {
+          // ✅ Early win is allowed
+          setWinner(`${secondBattingTeamName} Wins! 🏆`);
+          setShowPopup(true);
+        } else if (secondInningScore === firstInningScore) {
+          // ✅ Tie only if match is over
+          setWinner("It's a Tie! 🤝");
+          setShowPopup(true);
+        } else if (secondInningScore < firstInningScore) {
+          // ✅ First team wins only if second team fails after innings end
+          setWinner(`${firstBattingTeamName} Wins! 🏆`);
+          setShowPopup(true);
+        }
       }
-
-      // else if (secondTeamWickets === 10 && secondInningScore < firstInningScore) {
-      //   console.log(`${teams.teamA} Wins!`);
-      //   setWinner(`${teams.teamA} Wins! 🏆`);
-      //   setShowPopup(true);
-      // }
-
     }
-  }, [scores, wicket, currentInning, teams]); // Ensure effect re-runs on latest scores & wickets
+  }, [scores, wicket, currentInning, teams, battingTeam, isOversCompleted, firstBattedTeam, prematureMatchOver]);  
 
   const handleTeamChange = (team, value) => {
     //setTeams({ ...teams, [team]: value });
@@ -254,8 +254,11 @@ function LiveMatchUpdate({ isAdmin }) {
       console.log("First Inning Done! Switching teams...");
       
       // Switch to the next inning
-      setCurrentInning(2);
-      setBattingTeam(battingTeam === teams.teamA ? teams.teamB : teams.teamA);
+      currentInning == 2 ? setIsOversCompleted(true) : setIsOversCompleted(false);
+      if(currentInning == 1){
+        setCurrentInning(2);
+        setBattingTeam(battingTeam === teams.teamA ? teams.teamB : teams.teamA);
+      }
     }
 
     setScores((prevScores) => {
@@ -364,7 +367,7 @@ function LiveMatchUpdate({ isAdmin }) {
             <ul className="mt-4">
               {players.teamA.map((player, index) => (
                 <li key={index} className="py-1">
-                  {player.name || `Player ${index + 1}`} - {player.runs} Runs
+                  {player.name || `Player ${index + 1}`} - {player.runs} Runs - {player.ballsFaced} Balls
                 </li>
               ))}
             </ul>
@@ -375,7 +378,7 @@ function LiveMatchUpdate({ isAdmin }) {
             <ul className="mt-4">
               {players.teamB.map((player, index) => (
                 <li key={index} className="py-1">
-                  {player.name || `Player ${index + 1}`} - {player.runs} Runs
+                  {player.name || `Player ${index + 1}`} - {player.runs} Runs - {player.ballsFaced} Balls
                 </li>
               ))}
             </ul>
@@ -386,6 +389,22 @@ function LiveMatchUpdate({ isAdmin }) {
     {/* Second Section */}
     {isAdmin && (
       <div className="grid-cols-1 md:col-span-3 bg-white p-4 rounded shadow-md">
+        <div className="float-right">
+          { currentInning == 2 ?
+          <button
+            onClick={() => {
+              const confirmEnd = window.confirm("Are you sure you want to complete/over this premature match?");
+              if (confirmEnd) {
+                setPrematureMatchOver(true);
+              }
+            }}
+            className="matchOverBtn text-white"
+            title="Caution: You are ending the match prematurely!"
+          >
+            Match Over!
+          </button> : ""
+          }
+        </div>
         <h3 className="text-xl font-bold mb-2">Team Names</h3>
         <div className="flex space-x-4">
           <input
@@ -408,7 +427,7 @@ function LiveMatchUpdate({ isAdmin }) {
                 updatedAt: new Date(),
               });
             }}
-            className="border p-2 w-1/2"
+            className="border-1 border-yellow-500 p-2 w-1/2 rounded bg-yellow-50"
           />
           <input
             type="text"
@@ -430,7 +449,7 @@ function LiveMatchUpdate({ isAdmin }) {
                 updatedAt: new Date(),
               });
             }}
-            className="border p-2 w-1/2"
+            className="border-1 border-yellow-500 p-2 w-1/2 rounded bg-yellow-50"
           />
         </div>
 
@@ -444,7 +463,7 @@ function LiveMatchUpdate({ isAdmin }) {
                 disabled={!areTeamsFilled}
                 value={overs}
                 onChange={(e) => handleOverChange(e.target.value)}
-                className="border p-2 w-full"
+                className="border-1 border-yellow-500 bg-yellow-50 p-2 w-full rounded"
                 />
             </div>
             {/* <div className="w-full md:w-auto md:mr-8">
@@ -532,7 +551,7 @@ function LiveMatchUpdate({ isAdmin }) {
                 </div>
             </div>
             : <div className="w-full md:w-auto md:mr-8">
-                <p className="text-l font-bold mt-15 mb-2">Toss Winner Update...</p>
+                <p className="text-l font-bold mt-15 mb-2">Toss Win By Team...</p>
               </div> 
             }
 
@@ -670,27 +689,26 @@ function LiveMatchUpdate({ isAdmin }) {
                     placeholder="Runs"
                     value={players[team][index].runs}
                     onChange={(e) => handleScoreUpdate(team, index, "runs", e.target.value)}
-                    className={`border p-1 w-1/2 ${
+                    className={`border p-1 w-16 ${
                       battingTeam !== teams[team] ? "bg-gray-300 cursor-not-allowed" : ""
                     }`}
                     disabled={battingTeam !== teams[team]}
                   />
-                  {/* <input
+                  <input
                     type="number"
                     placeholder="Ball Faced"
                     value={players[team][index].ballsFaced}
                     onChange={(e) => handleScoreUpdate(team, index, "ballsFaced", e.target.value)}
                     className={`border p-1 w-16 ${
-                      tossWin !== teams[team] || optTo !== "Bat First" ? "bg-gray-300 cursor-not-allowed" : ""
+                      battingTeam !== teams[team] ? "bg-gray-300 cursor-not-allowed" : ""
                     }`}
-                    disabled={tossWin !== teams[team] || optTo !== "Bat First"}
-                  /> */}
+                    disabled={battingTeam !== teams[team]}
+                  />
                 </div>
               ))}
             </div>
           ))}
-        </div>
-
+        </div>    
       </div>
     )}
     </div>

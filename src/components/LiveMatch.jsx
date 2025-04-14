@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
 const LiveMatch = ({ matchId = "abc123" }) => {
   const [matchData, setMatchData] = useState(null);
-    console.log(matchData);
+  console.log(matchData);
   // 🔄 Real-time listener
   useEffect(() => {
     const matchRef = doc(db, "matches", matchId);
@@ -19,9 +19,43 @@ const LiveMatch = ({ matchId = "abc123" }) => {
 
     return () => unsubscribe(); // 🧹 Clean up on unmount
   }, [matchId]);
+  const scrollRef = useRef(null);
+
+  const scrollRight = () => {
+    scrollRef.current.scrollBy({
+      left: 300, // amount to scroll (in pixels)
+      behavior: "smooth",
+    });
+  };
+
+  const matches = [
+    { id: 1, team1: "ABC", team2: "DEF", status: "In Progress" },
+    { id: 2, team1: "GHI", team2: "JKL", status: "Upcoming" },
+    { id: 3, team1: "MNO", team2: "PQR", status: "Completed" },
+    { id: 4, team1: "STU", team2: "VWX", status: "In Progress" },
+    { id: 5, team1: "YZA", team2: "BCD", status: "Upcoming" },
+  ];
 
     return (
         <>
+        {/* List of matches */}
+        
+        <div className="relative w-full" hidden>
+        {/* Scrollable match list */}
+        <div ref={scrollRef} className="flex overflow-x-auto space-x-4 p-4 scrollbar-hide">
+            {matches.map((match) => (
+                <div key={match.id} className="min-w-[200px] bg-white border rounded-xl shadow p-4 flex-shrink-0">
+                    <h3 className="text-lg font-bold text-center mb-1"> {match.team1} 🆚 {match.team2} </h3>
+                    <p className="text-center text-sm text-gray-600">{match.status}</p>
+                </div>
+            ))}
+        </div>
+
+        {/* Scroll right button */}
+        <button onClick={scrollRight} className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-full shadow hover:bg-blue-700" > ➡️</button>
+        </div>
+        
+        {/* End of list */}
         {matchData && matchData.optTo ? (
             <div className="bg-gray-100 mt-4 p-4 rounded shadow-md">
                 <h2 class="text-2xl font-extrabold text-center text-gray-800 mb-4">{matchData.teams.teamA} 🆚 {matchData.teams.teamB}</h2>
@@ -62,11 +96,11 @@ const LiveMatch = ({ matchId = "abc123" }) => {
                             <div className="border-1 border-sky-500/50 p-2 rounded-tl rounded-tr bg-sky-500/50 text-center">
                                 <h3 className="text-sm font-semibold">Team {matchData.teams[team]} Players</h3>
                             </div>
-                            <div className="border-1 border-sky-500/50 px-2">
+                            <div className="border-1 border-sky-500/50 px-2 py-2">
                                 <ul className="mt-4">
                                 {matchData.players[team].map((player, index) => (
-                                    <li key={index} className="py-1">
-                                    {player.name || `Player ${index + 1}`} - {player.runs} Runs
+                                    <li key={index} className="py-1 border-b-1">
+                                    {<label className="text-[16px] font-semibold">{player.name}</label> || `Player ${index + 1}`} | {player.runs} Runs | {player.ballsFaced} Balls
                                     </li>
                                 ))}
                                 </ul>
