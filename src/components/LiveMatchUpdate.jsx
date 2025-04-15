@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { useParams, Link } from "react-router-dom";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
 function LiveMatchUpdate({ isAdmin }) {
@@ -26,7 +27,37 @@ function LiveMatchUpdate({ isAdmin }) {
     teamB: Array.from({ length: 11 }, () => ({ name: "", runs: 0, ballsFaced:0})),
   });
 
-  const matchId = "abc123";
+  //const matchId = currentMatch?.id || "abc123"; // fallback if null
+  const { matchId } = useParams();
+
+  const [matchData, setMatchData] = useState(null);
+
+  useEffect(() => {
+    const fetchMatch = async () => {
+      try {
+        const matchRef = doc(db, "matches", matchId);
+        const matchSnap = await getDoc(matchRef);
+        if (matchSnap.exists()) {
+          const data = matchSnap.data();
+          setMatchData(data);
+          setTeams({
+            teamA: data.teamA || "",
+            teamB: data.teamB || "",
+          });
+        } else {
+          console.log("No such match!");
+        }
+      } catch (error) {
+        console.error("Error fetching match:", error);
+      }
+    };
+
+    if (matchId) {
+      fetchMatch();
+    }
+  }, [matchId]);
+
+  console.log("MatchData -> ", matchData);
 
   function debounce(func, delay) {
     let timer;
@@ -160,6 +191,7 @@ function LiveMatchUpdate({ isAdmin }) {
       optTo,
       scores,
       wicket,
+      matchStatus:"Live",
       updatedAt: new Date(),
     });
   };
@@ -325,13 +357,14 @@ function LiveMatchUpdate({ isAdmin }) {
       )}    
       {/* First Section */}
       <div className="grid-cols-1 md:col-span-2 bg-gray-100 p-4 rounded shadow-md">
-        <h2 className="text-xl font-bold mb-2 text-center">LIVE SCORE BOARD</h2>
+        <Link to="/admin" className="hover:text-blue-500">Back To Series</Link>
+        <h2 className="text-lg font-bold mb-2 text-center">LIVE SCORE BOARD</h2>
         <div className="my-2 py-2">
-            { areTeamsFilled ? <h2 class="text-2xl font-extrabold text-center text-gray-800 mb-4">{teams.teamA} 🆚 {teams.teamB}</h2> : "" }
+            { areTeamsFilled ? <h2 class="text-base font-extrabold text-center text-gray-800 mb-4">{teams.teamA} 🆚 {teams.teamB}</h2> : "" }
             { tossWin != "" ? <h5 className="text-base font-medium text-gray-700 text-center">
               <span class="font-semibold text-blue-600">{tossWin} won the toss and opt to {optTo.toLowerCase()} </span></h5> : "" }
               { winner == "" ? <div class="text-center">
-            { battingTeam != "" ? <h2 class="text-lg font-bold text-red-600"> {currentInning === 1 ? "First Inning in Progress" : "Second Inning in Progress"} </h2> : "" }
+            { battingTeam != "" ? <h2 class="text-base font-bold text-red-600"> {currentInning === 1 ? "First Inning in Progress" : "Second Inning in Progress"} </h2> : "" }
             </div> : <div class="text-center py-2"><p className="text-violet-500 font-semibold text-lg border-stone-400 border-1 rounded py-2">{winner} Congratulations 🎉</p></div> }
             <div className="grid grid-cols-2 gap-4 mt-4">
                 <div className={`grid grid-cols-3 gap-4 border-stone-400 border-1 p-2 rounded ${battingTeam == teams.teamA ? "bg-green-300" : "bg-stone-300" }`}>
@@ -339,7 +372,7 @@ function LiveMatchUpdate({ isAdmin }) {
                         <h4 className="text-sm md:text-base font-semibold">{teams.teamA}</h4>
                     </div>
                     <div className="col-span-2">
-                        <h4 className="text-sm md:text-base font-semibold float-right">{scores.teamA} / {wicket.teamA} ({activeOverUpdate.teamA} Overs)</h4>
+                        <h4 className="text-sm md:text-base font-semibold float-right">{scores.teamA} / {wicket.teamA} ({activeOverUpdate.teamA})</h4>
                     </div>
                 </div>
                 <div className={`grid grid-cols-3 gap-4 border-stone-400 border-1 p-2 rounded ${battingTeam == teams.teamB ? "bg-green-300" : "bg-stone-300" }`}>
@@ -347,7 +380,7 @@ function LiveMatchUpdate({ isAdmin }) {
                         <h4 className="text-sm md:text-base font-semibold">{teams.teamB}</h4>
                     </div>
                     <div className="col-span-2">
-                        <h4 className="text-sm md:text-base font-semibold float-right">{scores.teamB} / {wicket.teamB}  ({activeOverUpdate.teamB} Overs)</h4>
+                        <h4 className="text-sm md:text-base font-semibold float-right">{scores.teamB} / {wicket.teamB}  ({activeOverUpdate.teamB})</h4>
                     </div>
                 </div>
             </div>
@@ -455,42 +488,18 @@ function LiveMatchUpdate({ isAdmin }) {
 
         <div className="flex flex-wrap md:flex-nowrap space-y-4 md:space-y-0 md:space-x-4">
             {/* Match Overs */}
-            <div className="w-full md:w-auto md:mr-8">
+            <div className="w-full md:w-[15vh] md:mr-8">
                 <h2 className="text-xl font-bold mt-6">Overs</h2>
                 <input
                 type="number"
-                placeholder="Total Overs"
+                placeholder="Overs"
                 disabled={!areTeamsFilled}
                 value={overs}
                 onChange={(e) => handleOverChange(e.target.value)}
                 className="border-1 border-yellow-500 bg-yellow-50 p-2 w-full rounded"
                 />
             </div>
-            {/* <div className="w-full md:w-auto md:mr-8">
-                <h2 className="text-xl font-bold mt-6">Overs</h2>
-                <input
-                type="number"
-                placeholder="Total Overs"
-                value={overs.teamA}
-                onChange={(e) => { 
-                  handleOverChange(e.target.value);
-                  const updatedOvers = { ...overs, teamA: parseInt(e.target.value) || 0 };
-                  setOvers(updatedOvers);
-
-                  debouncedUpdate({
-                    teams,
-                    overs: updatedOvers,
-                    tossWin,
-                    optTo,
-                    scores,
-                    wicket,
-                    updatedAt: new Date(),
-                  });
-                }}
-                className="border p-2 w-full"
-                />
-            </div> */}
-
+            
             {/* Toss Time */}
             { areTeamsFilled ? 
             <div className="w-full md:w-auto md:mr-8">

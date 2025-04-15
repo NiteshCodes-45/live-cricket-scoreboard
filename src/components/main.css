@@ -35,6 +35,22 @@
     max-height: 4vh;
     background-color: red;
 }
+.addBtn{
+    padding:1vh 1.5vh;
+    line-height: 0vh;
+    height: 4.5vh;
+    max-height: 8vh;
+    background-color: transparent;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+}
+.addBtn:hover{
+    padding:1vh 1.5vh;
+    line-height: 0vh;
+    height: 4.5vh;
+    max-height: 8vh;
+    border: 1px solid orangered;
+}
 html, body, #root {
     width: 100%;
     min-height: 100vh;

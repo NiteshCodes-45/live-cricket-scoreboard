@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LiveMatchUpdate from "./components/LiveMatchUpdate";
+import SeriesManager from "./components/SeriesManager.jsx";
 import LiveMatch from "./components/LiveMatch.jsx";
 import Navbar from './components/Navbar.jsx';
 import './components/main.css';
@@ -32,8 +33,8 @@ function App() {
                 <Route path="/login" element={<Login />} />
 
                 {/* Protected Admin Route */}
-                <Route path="/admin" element={<ProtectedRoute><LiveMatchUpdate isAdmin={true} /></ProtectedRoute>} />
-
+                <Route path="/admin" element={<ProtectedRoute><SeriesManager isAdmin={true} /></ProtectedRoute>} />
+                <Route path="/live-match-update/:matchId" element={<LiveMatchUpdate isAdmin={true} />} />
                 {/* Redirect unknown routes to homepage */}
                 <Route path="*" element={<Navigate to="/" />} />
 

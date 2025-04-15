@@ -1,13 +1,14 @@
 import { useRef, useEffect, useState } from "react";
-import { doc, setDoc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import useSeriesAndMatches from "../hooks/useSeriesAndMatches";
 
 const LiveMatch = ({ matchId = "abc123" }) => {
   const [matchData, setMatchData] = useState(null);
-  console.log(matchData);
-  // 🔄 Real-time listener
-  useEffect(() => {
-    const matchRef = doc(db, "matches", matchId);
+  const { allSeries, allMatches, loading } = useSeriesAndMatches();
+
+  const viewMatchScoreboard = (viewMatchId) =>{
+    const matchRef = doc(db, "matches", viewMatchId);
 
     const unsubscribe = onSnapshot(matchRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -16,9 +17,23 @@ const LiveMatch = ({ matchId = "abc123" }) => {
         console.log("No such match document!");
       }
     });
+    return () => unsubscribe();
+  };
+  
+  // useEffect(() => {
+  //   const matchRef = doc(db, "matches", matchId);
 
-    return () => unsubscribe(); // 🧹 Clean up on unmount
-  }, [matchId]);
+  //   const unsubscribe = onSnapshot(matchRef, (docSnap) => {
+  //     if (docSnap.exists()) {
+  //       setMatchData(docSnap.data());
+  //     } else {
+  //       console.log("No such match document!");
+  //     }
+  //   });
+
+  //   return () => unsubscribe(); // 🧹 Clean up on unmount
+  // }, [matchId]);
+
   const scrollRef = useRef(null);
 
   const scrollRight = () => {
@@ -28,35 +43,80 @@ const LiveMatch = ({ matchId = "abc123" }) => {
     });
   };
 
-  const matches = [
-    { id: 1, team1: "ABC", team2: "DEF", status: "In Progress" },
-    { id: 2, team1: "GHI", team2: "JKL", status: "Upcoming" },
-    { id: 3, team1: "MNO", team2: "PQR", status: "Completed" },
-    { id: 4, team1: "STU", team2: "VWX", status: "In Progress" },
-    { id: 5, team1: "YZA", team2: "BCD", status: "Upcoming" },
-  ];
-
     return (
         <>
         {/* List of matches */}
         
-        <div className="relative w-full" hidden>
+        <div className="relative w-full">
         {/* Scrollable match list */}
         <div ref={scrollRef} className="flex overflow-x-auto space-x-4 p-4 scrollbar-hide">
-            {matches.map((match) => (
-                <div key={match.id} className="min-w-[200px] bg-white border rounded-xl shadow p-4 flex-shrink-0">
-                    <h3 className="text-lg font-bold text-center mb-1"> {match.team1} 🆚 {match.team2} </h3>
-                    <p className="text-center text-sm text-gray-600">{match.status}</p>
+            {allMatches.map((match) => (
+                <div key={match.id} className="min-w-[240px] bg-white rounded-2xl shadow-lg p-4 flex-shrink-0 border border-gray-200 hover:shadow-xl transition duration-300">
+                {/* Series Name */}
+                <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-4">{match.seriesName}</p>
+              
+                {/* Match Display */}
+                {match.matchStatus === "Live" ? (
+                  <>
+                    {/* Team A */}
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-semibold text-gray-800">{match.teamA}</h4>
+                      <h4 className="text-sm font-mono text-gray-700">
+                        {match.scores.teamA} / {match.wicket.teamA}{" "}
+                        <span className="text-xs text-gray-500">({match.activeOverUpdate.teamA})</span>
+                      </h4>
+                    </div>
+              
+                    {/* Team B */}
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-sm font-semibold text-gray-800">{match.teamB}</h4>
+                      <h4 className="text-sm font-mono text-gray-700">
+                        {match.scores.teamB} / {match.wicket.teamB}{" "}
+                        <span className="text-xs text-gray-500">({match.activeOverUpdate.teamB})</span>
+                      </h4>
+                    </div>
+                  </>
+                ) : (
+                  <h3 className="text-base font-bold text-gray-800 mb-4">
+                    {match.teamA} <span className="text-gray-400">vs</span> {match.teamB}
+                  </h3>
+                )}
+              
+                {/* Toss Info */}
+                {match.tossWin && match.optTo && (
+                  <p className="text-xs text-gray-600 mb-2 italic">
+                    {match.tossWin} won the toss and opted to {match.optTo.toLowerCase()}
+                  </p>
+                )}
+              
+                {/* Match Status */}
+                <>
+                <div className="flex items-center justify-between">
+                  <span
+                    className={`inline-block text-xs font-semibold px-2 py-1 rounded-full ${
+                      match.matchStatus === "Live"
+                        ? "bg-red-100 text-red-600"
+                        : match.matchStatus === "Upcoming"
+                        ? "bg-yellow-100 text-yellow-600"
+                        : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    {match.matchStatus}
+                  </span>
+                  { match.matchStatus === "Live" ? <a href="#" onClick={(e)=> viewMatchScoreboard(match.id)} className="inline-block text-xs font-semibold px-2 py-1 rounded-full">Scoreboard</a> : "" }
                 </div>
+                </>
+              </div>              
             ))}
         </div>
 
         {/* Scroll right button */}
-        <button onClick={scrollRight} className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-full shadow hover:bg-blue-700" > ➡️</button>
-        </div>
+        { allMatches.length > 5 ?
+        <button onClick={scrollRight} className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-full shadow hover:bg-blue-700" > ➡️</button> : "" }
+        </div> 
         
         {/* End of list */}
-        {matchData && matchData.optTo ? (
+        {matchData ? (
             <div className="bg-gray-100 mt-4 p-4 rounded shadow-md">
                 <h2 class="text-2xl font-extrabold text-center text-gray-800 mb-4">{matchData.teams.teamA} 🆚 {matchData.teams.teamB}</h2>
                 <div className="bg-gray-100 rounded-lg px-4 py-3 mb-4">
