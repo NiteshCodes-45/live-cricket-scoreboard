@@ -1,34 +1,49 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import logo from "/src/assets/sclogo_transparent.png";
 
 export default function Login() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    login(password);
-    navigate("/admin"); // Redirect to Admin Panel after login
+    try {
+      await login(email, password);
+      navigate("/admin"); // Redirect to Admin Panel
+    } catch (error) {
+      alert("Login failed. Please check credentials.");
+      console.error(error);
+    }
   };
 
   return (
     <div className="flex justify-center items-center mt-12">
       <div className="bg-white ring shadow-md rounded-lg p-6 text-center">
-        {/* <img className="w-auto h-12 md:h-14 lg:h-16" src={logo} alt="Score-Cart" /> */}
         <h2 className="text-2xl font-bold mb-4">Admin Login</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
+            type="email"
+            placeholder="Admin Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="border p-2 w-full"
+            required
+          />
+          <input
             type="password"
-            placeholder="Enter Admin Password"
+            placeholder="Admin Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="border p-2 w-full"
             required
           />
-          <button type="submit" className="adminLoginBtn bg-grey-500 text-black px-4 py-2 rounded">
+          <button
+            type="submit"
+            className="adminLoginBtn bg-gray-700 text-white px-4 py-2 rounded"
+          >
             Login
           </button>
         </form>

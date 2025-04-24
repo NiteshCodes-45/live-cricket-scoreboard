@@ -111,7 +111,7 @@ const SeriesManager = () => {
       <h2 className="text-xl font-bold mt-6 mb-2">Matches by Series</h2>
       {allSeries.map(series => (
         <div key={series.id} className="mb-4">
-          <h3 className="font-semibold text-lg">{series.name}</h3>
+          <h3 className="font-semibold text-lg font-bold">{series.name}</h3>
           <ul className="ml-4 list-disc">
             {allMatches
               .filter(match => match.seriesId === series.id)
