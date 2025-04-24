@@ -33,6 +33,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
 
                 {/* Protected Admin Route */}
+                <Route path="/series-manager" element={<SeriesManager />} />
                 <Route path="/admin" element={<ProtectedRoute><SeriesManager isAdmin={true} /></ProtectedRoute>} />
                 <Route path="/live-match-update/:matchId" element={<LiveMatchUpdate isAdmin={true} />} />
                 {/* Redirect unknown routes to homepage */}

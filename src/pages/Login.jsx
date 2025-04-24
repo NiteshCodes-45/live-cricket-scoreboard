@@ -12,7 +12,7 @@ export default function Login() {
     e.preventDefault();
     try {
       await login(email, password);
-      navigate("/admin"); // Redirect to Admin Panel
+      navigate("/series-manager"); //Navigate after login
     } catch (error) {
       alert("Login failed. Please check credentials.");
       console.error(error);
