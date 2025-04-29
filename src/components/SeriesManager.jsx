@@ -85,7 +85,7 @@ const SeriesManager = () => {
       <select
         value={matchData.seriesId}
         onChange={(e) => setMatchData({ ...matchData, seriesId: e.target.value })}
-        className="border px-2 py-1 mr-2"
+        className="border px-2 py-1 mr-2 w-90 md:w-50"
       >
         <option value="">Select Series</option>
         {allSeries.map(series => (
@@ -97,16 +97,16 @@ const SeriesManager = () => {
         value={matchData.teamA}
         onChange={(e) => setMatchData({ ...matchData, teamA: e.target.value })}
         placeholder="Team A"
-        className="border px-2 py-1 mr-2"
+        className="border px-2 py-1 mr-2 mt-4 w-90 md:w-50"
       />
       <input
         type="text"
         value={matchData.teamB}
         onChange={(e) => setMatchData({ ...matchData, teamB: e.target.value })}
         placeholder="Team B"
-        className="border px-2 py-1 mr-2"
+        className="border px-2 py-1 mr-2 mt-4 w-90 md:w-50"
       />
-      <button onClick={handleMatchCreate} className="addBtn text-gray-500 px-3 py-1">Add Match</button>
+      <button onClick={handleMatchCreate} className="addBtn text-gray-500 px-3 py-1 mt-4 w-90 md:w-30">Add Match</button>
 
       <h2 className="text-xl font-bold mt-6 mb-2">Matches by Series</h2>
       {allSeries.map(series => (

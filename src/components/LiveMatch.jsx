@@ -83,10 +83,14 @@ const LiveMatch = ({ matchId = "abc123" }) => {
                 )}
               
                 {/* Toss Info */}
-                {match.tossWin && match.optTo && (
-                  <p className="text-xs text-gray-600 mb-2 italic">
-                    {match.tossWin} won the toss and opted to {match.optTo.toLowerCase()}
-                  </p>
+                {match.winner === "" ? (
+                  match.tossWin && match.optTo && (
+                    <p className="text-xs text-gray-600 mb-2 italic">
+                      {match.tossWin} won the toss and opted to {match.optTo.toLowerCase()}
+                    </p>
+                  )
+                ) : (
+                  <p className="text-xs text-gray-600 mb-2 italic">{match.winner}</p>
                 )}
               
                 {/* Match Status */}
@@ -101,7 +105,7 @@ const LiveMatch = ({ matchId = "abc123" }) => {
                         : "bg-gray-100 text-gray-500"
                     }`}
                   >
-                    {match.matchStatus}
+                    {match.winner != "" ? match.matchStatus : ""}
                   </span>
                   { match.matchStatus === "Live" ? <a href="#" onClick={(e)=> viewMatchScoreboard(match.id)} className="inline-block text-xs font-semibold px-2 py-1 rounded-full">Scoreboard</a> : "" }
                 </div>

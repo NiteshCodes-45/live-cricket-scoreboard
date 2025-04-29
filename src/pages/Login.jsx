@@ -21,7 +21,7 @@ export default function Login() {
 
   return (
     <div className="flex justify-center items-center mt-12">
-      <div className="bg-white ring shadow-md rounded-lg p-6 text-center">
+      <div className="bg-white ring shadow-md rounded-lg p-6 text-center w-[25rem]">
         <h2 className="text-2xl font-bold mb-4">Admin Login</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -42,7 +42,7 @@ export default function Login() {
           />
           <button
             type="submit"
-            className="adminLoginBtn bg-gray-700 text-white px-4 py-2 rounded"
+            className="adminLoginBtn bg-gray-700 text-black px-4 py-2 rounded"
           >
             Login
           </button>

@@ -1,8 +1,12 @@
 {
   "emulators": {
+    "auth": {
+      "port": 9099
+    },
     "firestore": {
       "host": "localhost",
-      "port": 8080
+      "port": 8081,
+      "rules": "firestore.rules"
     },
     "ui": {
       "enabled": true
