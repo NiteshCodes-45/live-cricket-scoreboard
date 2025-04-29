@@ -90,14 +90,15 @@ const LiveMatch = ({ matchId = "abc123" }) => {
                     </p>
                   )
                 ) : (
-                  <p className="text-xs text-gray-600 mb-2 italic">{match.winner}</p>
+                  <p className="text-xs text-gray-600 mb-4 italic">{match.winner}</p>
                 )}
               
                 {/* Match Status */}
                 <>
                 <div className="flex items-center justify-between">
+                {match.winner == "" ?
                   <span
-                    className={`inline-block text-xs font-semibold px-2 py-2 rounded-full ${
+                    className={`inline-block text-xs font-semibold px-2 py-1 rounded-full ${
                       match.matchStatus === "Live"
                         ? "bg-red-100 text-red-600"
                         : match.matchStatus === "Upcoming"
@@ -105,8 +106,8 @@ const LiveMatch = ({ matchId = "abc123" }) => {
                         : "bg-gray-100 text-gray-500"
                     }`}
                   >
-                    {match.winner == "" ? match.matchStatus : ""}
-                  </span>
+                  { match.matchStatus }
+                  </span> : "" }
                   { match.matchStatus === "Live" ? <a href="#" onClick={(e)=> viewMatchScoreboard(match.id)} className="inline-block text-xs font-semibold px-2 py-1 rounded-full">Scoreboard</a> : "" }
                 </div>
                 </>
@@ -162,9 +163,11 @@ const LiveMatch = ({ matchId = "abc123" }) => {
                             </div>
                             <div className="border-1 border-sky-500/50 px-2 py-2">
                                 <ul className="mt-4">
-                                {matchData.players[team].map((player, index) => (
+                                {matchData.players[team]
+                                  .filter((player) => player.name.trim() !== "")
+                                  .map((player, index) => (
                                     <li key={index} className="py-1 border-b-1">
-                                    {<label className="text-[16px] font-semibold">{player.name}</label> || `Player ${index + 1}`} | {player.runs} Runs | {player.ballsFaced} Balls
+                                      <label className="text-[16px] font-semibold">{player.name}</label> | {player.runs} Runs | {player.ballsFaced} Balls
                                     </li>
                                 ))}
                                 </ul>
