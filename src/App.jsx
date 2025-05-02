@@ -73,7 +73,7 @@ function App() {
                 >
                   NiteshCodes
                 </a>{" "}
-                • Built with React & Tailwind CSS
+                • Built with <span className="text-red-500">♥</span> using React & Tailwind CSS
               </p>
               <div className="flex justify-center space-x-4 text-xl mt-1">
                 <a
