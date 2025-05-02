@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import logo from "/src/assets/sclogo_transparent.png";
+import logo from "/src/assets/score-cart-logo.png";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);

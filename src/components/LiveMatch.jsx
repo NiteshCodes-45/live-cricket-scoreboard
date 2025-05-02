@@ -3,12 +3,15 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import useSeriesAndMatches from "../hooks/useSeriesAndMatches";
 import noLiveMatchesImg from "/src/assets/no-live-matches.png";
+import Loader from "../components/Loader";
 
 const LiveMatch = ({ matchId = "abc123" }) => {
   const [matchData, setMatchData] = useState(null);
-  const { allSeries, allMatches, loading } = useSeriesAndMatches();
+  const { allSeries, allMatches } = useSeriesAndMatches();
+  const [loading, setLoading] = useState(true);
 
   const viewMatchScoreboard = (viewMatchId) =>{
+    
     const matchRef = doc(db, "matches", viewMatchId);
 
     const unsubscribe = onSnapshot(matchRef, (docSnap) => {
@@ -43,6 +46,8 @@ const LiveMatch = ({ matchId = "abc123" }) => {
       behavior: "smooth",
     });
   };
+
+  // if (loading) return <Loader />;
 
     return (
         <>

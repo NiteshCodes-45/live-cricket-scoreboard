@@ -71,7 +71,7 @@ function App() {
                   rel="noopener noreferrer"
                   className="font-medium text-blue-600 hover:underline"
                 >
-                  NiteshCodes
+                  NiteshCodes-45
                 </a>{" "}
                 • Built with <span className="text-red-500">♥</span> using React & Tailwind CSS
               </p>
