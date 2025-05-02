@@ -8,18 +8,18 @@ export function AuthProvider({ children }) {
   const auth = getAuth(app);
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-
+  const allowedAdmins = ["j38sduSe59WXiKEm05aYMKvExwpn", "1lVl1cgsgQTvmFAieyhTVk3yAYF2"];
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
-      if (user?.uid === "YOUR_ADMIN_UID") {
+      if (user && allowedAdmins.includes(user.uid)) {
         setIsAdmin(true);
       } else {
         setIsAdmin(false);
       }
     });
     return () => unsubscribe();
-  }, [auth]);
+  }, [auth, allowedAdmins]);
 
   const login = async (email, password) => {
     try {
@@ -32,6 +32,7 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     await signOut(auth);
     setIsAdmin(false);
+    setCurrentUser(null);
   };
 
   return (

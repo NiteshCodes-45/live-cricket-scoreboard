@@ -96,7 +96,7 @@ const LiveMatch = ({ matchId = "abc123" }) => {
                 {/* Match Status */}
                 <>
                 <div className="flex items-center justify-between">
-                {match.winner == "" ?
+                {match.winner == "" || match.matchStatus === "Upcoming" ?
                   <span
                     className={`inline-block text-xs font-semibold px-2 py-1 rounded-full ${
                       match.matchStatus === "Live"
@@ -108,7 +108,7 @@ const LiveMatch = ({ matchId = "abc123" }) => {
                   >
                   { match.matchStatus }
                   </span> : "" }
-                  { match.matchStatus === "Live" ? <a href="#" onClick={(e)=> viewMatchScoreboard(match.id)} className="inline-block text-xs font-semibold px-2 py-1 rounded-full">Scoreboard</a> : "" }
+                  { match.matchStatus === "Live" ? <a href="#" onClick={(e)=> viewMatchScoreboard(match.id)} className="inline-block text-xs font-semibold py-1 rounded-full">Scoreboard</a> : "" }
                 </div>
                 </>
               </div>              

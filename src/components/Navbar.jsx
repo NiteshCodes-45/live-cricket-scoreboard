@@ -1,12 +1,12 @@
 import { useState, useContext } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import logo from "/src/assets/sclogo_transparent.png";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { isAdmin, logout } = useContext(AuthContext);
-
+  console.log("isAdmin:", isAdmin);
   return (
     <nav className="bg-[#ece5d5] text-black p-2 border-b border-gray-100">
       <div className="w-full max-w-full mx-auto flex justify-between items-center px-4">
@@ -21,7 +21,7 @@ export default function Navbar() {
           {isAdmin ? (
             <>
               <Link to="/admin" className="hover:text-blue-500">Admin</Link>
-              <button onClick={logout} className="adminLogoutBtn text-red-500 px-3 py-1">
+              <button onClick={() => { logout(); navigate("/"); }}  className="adminLogoutBtn text-red-500 px-3 py-1">
                 Logout
               </button>
             </>
