@@ -8,9 +8,9 @@ import './components/main.css';
 import Login from "./pages/Login";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { useContext } from "react";
-
 import './components/main.css';
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Loader from "./components/Loader";
 
 function ProtectedRoute({ children }) {
   const { isAdmin } = useContext(AuthContext);
@@ -19,10 +19,25 @@ function ProtectedRoute({ children }) {
 
 function App() {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    // Simulate API call or Firestore fetch
+    const fetchData = async () => {
+      // e.g., await fetchMatches()
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000); // Replace with actual data fetch logic
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <AuthProvider>
       <Router>
         <div className="container flex flex-col min-h-screen">
+          {/* <Loader isLoading={loading} /> */}
           <div className="flex flex-col min-h-screen w-full">
             <Navbar />
             <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
@@ -62,7 +77,7 @@ function App() {
             </div>
             {/* Footer */}
 
-            <footer className="w-full bg-white border-t mt-10 py-4 text-center text-sm text-gray-600">
+            <footer className="w-full border-t mt-10 py-4 text-center text-sm text-gray-600 border-t border-orange-200 shadow-sm p-4">
               <p className="mb-2">
                 &copy; {new Date().getFullYear()}{" "}
                 <a

@@ -3,15 +3,12 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import useSeriesAndMatches from "../hooks/useSeriesAndMatches";
 import noLiveMatchesImg from "/src/assets/no-live-matches.png";
-import Loader from "../components/Loader";
 
 const LiveMatch = ({ matchId = "abc123" }) => {
   const [matchData, setMatchData] = useState(null);
-  const { allSeries, allMatches } = useSeriesAndMatches();
-  const [loading, setLoading] = useState(true);
+  const { allSeries, allMatches, loading } = useSeriesAndMatches();
 
   const viewMatchScoreboard = (viewMatchId) =>{
-    
     const matchRef = doc(db, "matches", viewMatchId);
 
     const unsubscribe = onSnapshot(matchRef, (docSnap) => {
@@ -47,8 +44,6 @@ const LiveMatch = ({ matchId = "abc123" }) => {
     });
   };
 
-  // if (loading) return <Loader />;
-
     return (
         <>
         {/* List of matches */}
@@ -57,7 +52,7 @@ const LiveMatch = ({ matchId = "abc123" }) => {
         {/* Scrollable match list */}
         <div ref={scrollRef} className="flex overflow-x-auto space-x-4 p-4 scrollbar-hide">
             {allMatches.map((match) => (
-                <div key={match.id} className="min-w-[240px] bg-white rounded-2xl shadow-lg p-4 flex-shrink-0 border border-gray-200 hover:shadow-xl transition duration-300">
+                <div key={match.id} className="min-w-[240px] bg-[#fffbf5] rounded-2xl shadow-lg p-4 flex-shrink-0 border border-gray-200 hover:shadow-xl transition duration-300">
                 {/* Series Name */}
                 <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-4">{match.seriesName}</p>
               

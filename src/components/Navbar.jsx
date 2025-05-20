@@ -8,7 +8,7 @@ export default function Navbar() {
   const { isAdmin, logout } = useContext(AuthContext);
   console.log("isAdmin:", isAdmin);
   return (
-    <nav className="bg-[#ece5d5] text-black p-2 border-b border-gray-100">
+    <nav className="sticky top-0 z-50 text-black p-2 border-b border-orange-200 shadow-sm">
       <div className="w-full max-w-full mx-auto flex justify-between items-center px-4">
         {/* Left Side - Logo */}
         <div className="text-2xl font-bold">
@@ -17,7 +17,7 @@ export default function Navbar() {
 
         {/* Right Side - Links */}
         <div className="hidden md:flex space-x-6">
-          <Link to="/live-match" className="hover:text-blue-500 transition-colors">Live Match</Link>
+          <Link to="/live-match" className="font-sans hover:text-blue-500 transition-colors">Live Match</Link>
           {isAdmin ? (
             <>
               <Link to="/admin" className="hover:text-blue-500">Admin</Link>
