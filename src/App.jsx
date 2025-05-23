@@ -80,15 +80,16 @@ function App() {
             <footer className="w-full border-t mt-10 py-4 text-center text-sm text-gray-600 border-t border-orange-200 shadow-sm p-4">
               <p className="mb-2">
                 &copy; {new Date().getFullYear()}{" "}
-                <a
+                Live Score Cart
+                • Developed by <a
                   href="https://github.com/NiteshCodes-45"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium text-blue-600 hover:underline"
                 >
-                  NiteshCodes-45
+                 NiteshCodes-45
                 </a>{" "}
-                • Built with <span className="text-red-500">♥</span> using React & Tailwind CSS
+                {/* • Built with <span className="text-red-500">♥</span> using React & Tailwind CSS */}
               </p>
               <div className="flex justify-center space-x-4 text-xl mt-1">
                 <a

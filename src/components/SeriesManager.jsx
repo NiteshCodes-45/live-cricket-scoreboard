@@ -73,19 +73,24 @@ const SeriesManager = () => {
     <div className="p-4">
       <h2 className="text-xl font-bold mb-2">Create New Series</h2>
       <input
-        type="text"
-        value={seriesName}
-        onChange={(e) => setSeriesName(e.target.value)}
-        placeholder="Series Name"
-        className="border px-2 py-1 mr-2"
-      />
-      <button onClick={handleSeriesCreate} className="addBtn text-gray-500 px-3 py-1">Add Series</button>
+      type="text"
+      value={seriesName}
+      onChange={(e) => setSeriesName(e.target.value)}
+      placeholder="Series Name"
+      className="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white mb-3 sm:mb-0 sm:mr-2 flex-1 w-90 md:w-50"
+    />
+    <button
+      onClick={handleSeriesCreate}
+      className="bg-gradient-to-r from-orange-400 to-pink-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:opacity-90 transition"
+    >
+      Add Series
+    </button>
 
       <h2 className="text-xl font-bold mt-6 mb-2">Add Match to Series</h2>
       <select
         value={matchData.seriesId}
         onChange={(e) => setMatchData({ ...matchData, seriesId: e.target.value })}
-        className="border px-2 py-1 mr-2 w-90 md:w-50"
+        className="border border-gray-300 px-2 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white mb-3 sm:mb-0 sm:mr-2 flex-1 w-90 md:w-50"
       >
         <option value="">Select Series</option>
         {allSeries.map(series => (
@@ -97,27 +102,27 @@ const SeriesManager = () => {
         value={matchData.teamA}
         onChange={(e) => setMatchData({ ...matchData, teamA: e.target.value })}
         placeholder="Team A"
-        className="border px-2 py-1 mr-2 mt-4 w-90 md:w-50"
+        className="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white mb-3 sm:mb-0 sm:mr-2 flex-1 w-90 md:w-50"
       />
       <input
         type="text"
         value={matchData.teamB}
         onChange={(e) => setMatchData({ ...matchData, teamB: e.target.value })}
         placeholder="Team B"
-        className="border px-2 py-1 mr-2 mt-4 w-90 md:w-50"
+        className="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white mb-3 sm:mb-0 sm:mr-2 flex-1 w-90 md:w-50"
       />
-      <button onClick={handleMatchCreate} className="addBtn text-gray-500 px-3 py-1 mt-4 w-90 md:w-30">Add Match</button>
+      <button onClick={handleMatchCreate} className="bg-gradient-to-r from-orange-400 to-pink-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:opacity-90 transition">Add Match</button>
 
       <h2 className="text-xl font-bold mt-6 mb-2">Matches by Series</h2>
       {allSeries.map(series => (
         <div key={series.id} className="mb-4">
-          <h3 className="font-semibold text-lg font-bold">{series.name}</h3>
-          <ul className="ml-4 list-disc">
+          <h3 className="font-semibold text-base font-bold pt-2 uppercase">{series.name}</h3>
+          <ul className="ml-4 mt-4 list-disc">
             {allMatches
               .filter(match => match.seriesId === series.id)
               .map(match => (
-                <li key={match.id}>
-                  <span>{match.teamA} vs {match.teamB}</span> | <span className='text-orange-500'> {match.matchStatus}</span> | 
+                <li className='p-2' key={match.id}>
+                  <span className='font-bold'>{match.teamA} vs {match.teamB}</span> | <span className='text-orange-500'> {match.matchStatus}</span> | 
                   <Link
                     to={`/live-match-update/${match.id}`}
                     className="ml-2 text-blue-600 underline"

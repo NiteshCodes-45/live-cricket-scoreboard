@@ -29,7 +29,7 @@ export default function Login() {
             placeholder="Admin Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="border p-2 w-full"
+            className="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white md:mb-3 sm:mb-0 sm:mr-2 flex-1 w-full"
             required
           />
           <input
@@ -37,12 +37,12 @@ export default function Login() {
             placeholder="Admin Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="border p-2 w-full"
+            className="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white md:mb-3 sm:mb-0 sm:mr-2 flex-1 w-full"
             required
           />
           <button
             type="submit"
-            className="adminLoginBtn bg-gray-700 text-black px-4 py-2 rounded"
+            className="bg-gradient-to-r from-orange-400 to-pink-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:opacity-90 transition"
           >
             Login
           </button>
