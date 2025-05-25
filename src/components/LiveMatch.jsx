@@ -51,6 +51,15 @@ const LiveMatch = ({ matchId = "abc123" }) => {
     });
   };
 
+  const upcomingOrLiveMatches = allMatches.filter(
+  match =>
+    match.matchStatus === "Upcoming" ||
+    (match.matchStatus === "Live" && match.winner === "")
+  );
+
+  const upcomingLiveMatchesCount = upcomingOrLiveMatches.length;
+
+
     return (
         <>
         {/* List of matches */}
@@ -73,7 +82,7 @@ const LiveMatch = ({ matchId = "abc123" }) => {
           </h2>
           <div className="relative w-full">
           {/* Scroll Left button */}
-          { allMatches.length > 4 ?
+          { upcomingLiveMatchesCount > 4 ?
           <button
             onClick={scrollLeft}
             className="absolute left-[-1.2rem] top-1/2 -translate-y-1/2 bg-gradient-to-l from-orange-300 to-pink-500 text-white w-10 h-10 flex items-center justify-center rounded-full shadow hover:opacity-90 transition"
@@ -81,9 +90,14 @@ const LiveMatch = ({ matchId = "abc123" }) => {
             &lt;
           </button> : "" }
           {/* Scrollable match list */}
-          <div ref={scrollRef} className="flex overflow-x-hidden space-x-4 py-4 scrollbar-hide">
-              {allMatches.map((match) => (
-                  <div key={match.id} className="min-w-[24%] bg-[#fffbf5] rounded-2xl shadow-lg p-4 flex-shrink-0 border border-gray-200 hover:shadow-xl transition duration-300 md:bg-desktop">
+          <div ref={scrollRef} className="flex overflow-x-hidden space-x-4 py-4 px-1 scrollbar-hide">
+              {allMatches
+              .filter(
+                match =>
+                  match.matchStatus === "Upcoming" ||
+                  (match.matchStatus === "Live" && match.winner === ""))
+              .map((match) => (
+                  <div key={match.id} className="min-w-[24%] bg-[#fffbf5] rounded-2xl shadow-lg py-4 px-6 flex-shrink-0 border border-gray-200 hover:shadow-xl transition duration-300 md:bg-desktop">
                   {/* Series Name */}
                   <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-4">{match.seriesName}</p>
                 
@@ -156,7 +170,7 @@ const LiveMatch = ({ matchId = "abc123" }) => {
           } 
 
           {/* Scroll right button */}
-          { allMatches.length > 4 ?
+          { upcomingLiveMatchesCount > 4 ?
           <button
             onClick={scrollRight}
             className="absolute right-[-1.2rem] top-1/2 -translate-y-1/2 bg-gradient-to-r from-orange-300 to-pink-500 text-white text-base font-bold w-10 h-10 flex items-center justify-center rounded-full shadow hover:opacity-90 transition"
@@ -234,19 +248,77 @@ const LiveMatch = ({ matchId = "abc123" }) => {
             <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-pink-500 text-transparent bg-clip-text mb-6">
               Recent Matches
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              {/* Match cards go here */}
-              {allMatches
-                .filter(match => match.winner && match.winner.trim() !== "")
+            <div className="relative w-full">
+              <div className="flex overflow-x-hidden space-x-4 pb-2 scrollbar-hide">
+                {allMatches
+                .filter(
+                  match =>
+                    match.matchStatus === "Live" && match.winner != "")
                 .map((match) => (
-                  <div key={match.id} className="p-4 shadow-md rounded-xl bg-white">
-                    <p className="font-semibold text-gray-700">
-                      {match.teamA} <span className="text-gray-400">vs</span> {match.teamB}
-                    </p>
-                    <p className="text-sm text-gray-500">{match.overs} Overs | {match.winner}</p>
-                  </div>
-              ))}
-            </div>
+                    <div key={match.id} className="min-w-[24%] bg-[#fffbf5] rounded-2xl shadow-lg p-4 flex-shrink-0 border border-gray-200 hover:shadow-xl transition duration-300 md:bg-desktop">
+                    {/* Series Name */}
+                    <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-4">{match.seriesName}</p>
+                  
+                    {/* Match Display */}
+                    {match.matchStatus === "Live" ? (
+                      <>
+                        {/* Team A */}
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-sm font-semibold text-gray-800">{match.teamA}</h4>
+                          <h4 className="text-sm font-mono text-gray-700">
+                            {match.scores.teamA} / {match.wicket.teamA}{" "}
+                            <span className="text-xs text-gray-500">({match.activeOverUpdate.teamA})</span>
+                          </h4>
+                        </div>
+                  
+                        {/* Team B */}
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-sm font-semibold text-gray-800">{match.teamB}</h4>
+                          <h4 className="text-sm font-mono text-gray-700">
+                            {match.scores.teamB} / {match.wicket.teamB}{" "}
+                            <span className="text-xs text-gray-500">({match.activeOverUpdate.teamB})</span>
+                          </h4>
+                        </div>
+                      </>
+                    ) : (
+                      <h3 className="text-base font-bold text-gray-800 mb-4">
+                        {match.teamA} <span className="text-gray-400">vs</span> {match.teamB}
+                      </h3>
+                    )}
+                  
+                    {/* Toss Info */}
+                    {match.winner === "" ? (
+                      match.tossWin && match.optTo && (
+                        <p className="text-xs text-gray-600 mb-2 italic">
+                          {match.tossWin} won the toss and opted to {match.optTo.toLowerCase()}
+                        </p>
+                      )
+                    ) : (
+                      <p className="text-xs text-gray-600 mb-4 italic">{match.winner}</p>
+                    )}
+                  
+                    {/* Match Status */}
+                    <>
+                    <div className="flex items-center justify-between">
+                    {match.winner == "" || match.matchStatus === "Upcoming" ?
+                      <span
+                        className={`inline-block text-xs font-semibold px-2 py-1 rounded-full ${
+                          match.matchStatus === "Live"
+                            ? "bg-red-100 text-red-600"
+                            : match.matchStatus === "Upcoming"
+                            ? "bg-yellow-100 text-yellow-600"
+                            : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                      { match.matchStatus }
+                      </span> : "" }
+                      { match.matchStatus === "Live" ? <a href="#" onClick={(e)=> viewMatchScoreboard(match.id)} className="inline-block text-xs font-semibold py-1 rounded-full">Scoreboard</a> : "" }
+                    </div>
+                    </>
+                  </div>              
+                ))}
+              </div>
+            </div>  
           </section> : ""
         }
 
