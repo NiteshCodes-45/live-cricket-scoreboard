@@ -44,6 +44,10 @@ function LiveMatchUpdate({ isAdmin }) {
             teamA: data.teamA || "",
             teamB: data.teamB || "",
           });
+          setOvers({
+            teamA: data.teamA || "",
+            teamB: data.teamB || "",
+          });
         } else {
           console.log("No such match!");
         }

@@ -4,6 +4,7 @@ import LiveMatchUpdate from "./components/LiveMatchUpdate";
 import SeriesManager from "./components/SeriesManager.jsx";
 import LiveMatch from "./components/LiveMatch.jsx";
 import Navbar from './components/Navbar.jsx';
+import SingleMatchUpdate from "./components/SingleMatchUpdate.jsx";
 import './components/main.css';
 import Login from "./pages/Login";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
@@ -69,6 +70,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <LiveMatchUpdate isAdmin={true} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/single-live-match/:matchId"
+                element={
+                  <ProtectedRoute>
+                    <SingleMatchUpdate />
                   </ProtectedRoute>
                 }
               />
