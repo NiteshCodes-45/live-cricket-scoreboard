@@ -39,15 +39,20 @@ function LiveMatchUpdate({ isAdmin }) {
         const matchSnap = await getDoc(matchRef);
         if (matchSnap.exists()) {
           const data = matchSnap.data();
+          console.log(data.overs);
           setMatchData(data);
           setTeams({
             teamA: data.teamA || "",
             teamB: data.teamB || "",
           });
-          setOvers({
-            teamA: data.teamA || "",
-            teamB: data.teamB || "",
-          });
+          if (data.overs) {
+            setOvers(data.overs);
+            setTimeout(() => {
+              handleOverChange(data.overs);
+            }, 5);
+          }
+          if(data.tossWin){ setTossWin(data.tossWin); }
+          if(data.optTo){ setOptTo(data.optTo); }
         } else {
           console.log("No such match!");
         }
@@ -364,12 +369,12 @@ function LiveMatchUpdate({ isAdmin }) {
         <Link to="/admin" className="hover:text-blue-500">Back To Series</Link>
         <h2 className="text-lg font-bold mb-2 text-center">LIVE SCORE BOARD</h2>
         <div className="my-2 py-2">
-            { areTeamsFilled ? <h2 class="text-base font-extrabold text-center text-gray-800 mb-4">{teams.teamA} 🆚 {teams.teamB}</h2> : "" }
+            { areTeamsFilled ? <h2 className="text-base font-extrabold text-center text-gray-800 mb-4">{teams.teamA} 🆚 {teams.teamB}</h2> : "" }
             { tossWin != "" ? <h5 className="text-base font-medium text-gray-700 text-center">
-              <span class="font-semibold text-blue-600">{tossWin} won the toss and opt to {optTo.toLowerCase()} </span></h5> : "" }
-              { winner == "" ? <div class="text-center">
-            { battingTeam != "" ? <h2 class="text-base font-bold text-red-600"> {currentInning === 1 ? "First Inning in Progress" : "Second Inning in Progress"} </h2> : "" }
-            </div> : <div class="text-center py-2"><p className="text-violet-500 font-semibold text-lg border-stone-400 border-1 rounded py-2">{winner} Congratulations 🎉</p></div> }
+              <span className="font-semibold text-blue-600">{tossWin} won the toss and opt to {optTo.toLowerCase()} </span></h5> : "" }
+              { winner == "" ? <div className="text-center">
+            { battingTeam != "" ? <h2 className="text-base font-bold text-red-600"> {currentInning === 1 ? "First Inning in Progress" : "Second Inning in Progress"} </h2> : "" }
+            </div> : <div className="text-center py-2"><p className="text-violet-500 font-semibold text-lg border-stone-400 border-1 rounded py-2">{winner} Congratulations 🎉</p></div> }
             <div className="grid grid-cols-2 gap-4 mt-4">
                 <div className={`grid grid-cols-3 gap-4 border-stone-400 border-1 p-2 rounded ${battingTeam == teams.teamA ? "bg-green-300" : "bg-stone-300" }`}>
                     <div className="col-span-1">
@@ -464,7 +469,7 @@ function LiveMatchUpdate({ isAdmin }) {
                 updatedAt: new Date(),
               });
             }}
-            className="border-1 border-yellow-500 p-2 w-1/2 rounded bg-yellow-50"
+            className="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white mb-3 sm:mb-0 sm:mr-2 flex-1 p-2 w-1/2 rounded"
           />
           <input
             type="text"
@@ -486,7 +491,7 @@ function LiveMatchUpdate({ isAdmin }) {
                 updatedAt: new Date(),
               });
             }}
-            className="border-1 border-yellow-500 p-2 w-1/2 rounded bg-yellow-50"
+            className="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white mb-3 sm:mb-0 sm:mr-2 flex-1 p-2 w-1/2 rounded"
           />
         </div>
 
@@ -500,7 +505,7 @@ function LiveMatchUpdate({ isAdmin }) {
                 disabled={!areTeamsFilled}
                 value={overs}
                 onChange={(e) => handleOverChange(e.target.value)}
-                className="border-1 border-yellow-500 bg-yellow-50 p-2 w-full rounded"
+                className="border border-gray-300 px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white mb-3 sm:mb-0 sm:mr-2 flex-1 p-2 w-full rounded"
                 />
             </div>
             
@@ -640,7 +645,7 @@ function LiveMatchUpdate({ isAdmin }) {
         { areOversFilled ?
         <>
           <h2 className="text-xl font-bold mt-6">Over Breakdown</h2>
-          <div className="mt-4 grid md:grid-cols-2 gap-4">
+          <div className="mt-1 grid md:grid-cols-2 gap-4">
         {Object.keys(overDetails).map((team) => (
           <div key={team} className="mt-4">
             <h3 className="text-lg font-semibold">{teams[team]}</h3>
@@ -648,7 +653,7 @@ function LiveMatchUpdate({ isAdmin }) {
               <div key={overIndex} className="mt-2">
                 <h4 className="font-semibold">Over {overIndex + 1}</h4>
                 {/* {console.log(`Team: ${team}, Over Index: ${overIndex}, Active Over: ${activeOver[team]}`)} */}
-                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   {over.map((ball, ballIndex) => (
                     <input
                       max={6}
@@ -692,30 +697,27 @@ function LiveMatchUpdate({ isAdmin }) {
                     placeholder={`Player ${index + 1} Name`}
                     value={players[team][index].name}
                     onChange={(e) => handleScoreUpdate(team, index, "name", e.target.value)}
-                    className={`border p-1 w-1/2 ${
-                      battingTeam !== teams[team] ? "bg-gray-300 cursor-not-allowed" : ""
-                    }`}
-                    disabled={battingTeam !== teams[team]}
+                    className={`border p-1 w-1/2`}
+                    //${ battingTeam !== teams[team] ? "bg-gray-300 cursor-not-allowed" : "" }
+                    //disabled={battingTeam !== teams[team]}
                   />
                   <input
                     type="number"
                     placeholder="Runs"
                     value={players[team][index].runs}
                     onChange={(e) => handleScoreUpdate(team, index, "runs", e.target.value)}
-                    className={`border p-1 w-16 ${
-                      battingTeam !== teams[team] ? "bg-gray-300 cursor-not-allowed" : ""
-                    }`}
-                    disabled={battingTeam !== teams[team]}
+                    className={`border p-1 w-16`}
+                    //${ battingTeam !== teams[team] ? "bg-gray-300 cursor-not-allowed" : "" }
+                    //disabled={battingTeam !== teams[team]}
                   />
                   <input
                     type="number"
                     placeholder="Ball Faced"
                     value={players[team][index].ballsFaced}
                     onChange={(e) => handleScoreUpdate(team, index, "ballsFaced", e.target.value)}
-                    className={`border p-1 w-16 ${
-                      battingTeam !== teams[team] ? "bg-gray-300 cursor-not-allowed" : ""
-                    }`}
-                    disabled={battingTeam !== teams[team]}
+                    className={`border p-1 w-16`}
+                    //${ battingTeam !== teams[team] ? "bg-gray-300 cursor-not-allowed" : "" }
+                    //disabled={battingTeam !== teams[team]}
                   />
                 </div>
               ))}

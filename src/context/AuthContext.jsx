@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
   const auth = getAuth(app);
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const allowedAdmins = ["E89ATkDqphFZpPrLR37MMIkYO17o", "1lVl1cgsgQTvmFAieyhTVk3yAYF2"];
+  const allowedAdmins = ["59YpxKhCvmimS0YWzSMQMwSTMXZQ", "1lVl1cgsgQTvmFAieyhTVk3yAYF2"];
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);

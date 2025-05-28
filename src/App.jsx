@@ -46,6 +46,7 @@ function App() {
               {/*Public routes*/}
               <Route path="/" element={<LiveMatch isAdmin={false} />} />
               <Route path="/live-match" element={<LiveMatch isAdmin={false} />} />
+              <Route path="/single-live-match/:matchId" element={<SingleMatchUpdate isAdmin={false} />} />
               <Route path="/login" element={<Login />} />
 
               {/*Protected routes*/}
@@ -70,14 +71,6 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <LiveMatchUpdate isAdmin={true} />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/single-live-match/:matchId"
-                element={
-                  <ProtectedRoute>
-                    <SingleMatchUpdate />
                   </ProtectedRoute>
                 }
               />

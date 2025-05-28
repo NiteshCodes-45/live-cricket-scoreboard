@@ -25,17 +25,17 @@ function SingleMatchUpdate(){
     <>
     {matchData ? (
             <div className="mt-4 p-4">
-                <h2 class="text-2xl font-extrabold text-center text-gray-800 mb-4">{matchData.teams.teamA} 🆚 {matchData.teams.teamB}</h2>
+                <h2 className="text-2xl font-extrabold text-center text-gray-800 mb-4">{matchData.teams.teamA} 🆚 {matchData.teams.teamB}</h2>
                 <div className="rounded-lg px-4 py-3 mb-4">
                     { matchData.tossWin != "" ? 
                     <h5 className="text-base font-medium text-gray-700 text-center">
-                        <span class="font-semibold text-blue-600">
+                        <span className="font-semibold text-blue-600">
                             {matchData.tossWin} won the toss and opt to {matchData.optTo.toLowerCase()} 
                         </span>
                     </h5> : "" }
-                    { matchData.winner == "" ? <div class="text-center">
-                    { matchData.battingTeam != "" ? <h2 class="text-lg font-bold text-red-600"> {matchData.currentInning === 1 ? "First Inning in Progress" : "Second Inning in Progress"} </h2> : "" }
-                    </div> : <div class="text-center py-2"><p className="text-violet-500 font-semibold text-lg rounded py-2">{matchData.winner}</p></div> }
+                    { matchData.winner == "" ? <div className="text-center">
+                    { matchData.battingTeam != "" ? <h2 className="text-lg font-bold text-red-600"> {matchData.currentInning === 1 ? "First Inning in Progress" : "Second Inning in Progress"} </h2> : "" }
+                    </div> : <div className="text-center py-2"><p className="text-violet-500 font-semibold text-lg rounded py-2">{matchData.winner}</p></div> }
 
                     <div className="grid grid-cols-2 gap-4 mt-4">
                         <div className={`grid grid-cols-3 gap-4 border-stone-400 border-1 p-2 rounded ${matchData.battingTeam == matchData.teams.teamA ? "bg-green-300" : "bg-stone-300" }`}>
@@ -60,19 +60,29 @@ function SingleMatchUpdate(){
                     <div className="grid md:grid-cols-4 gap-4">
                     {Object.keys(matchData.players).map((team) => (
                         <div className="col-span-2" key={team}>
-                            <div className="border-1 border-sky-500/50 p-2 rounded-tl rounded-tr bg-sky-500/50 text-center">
-                                <h3 className="text-sm font-semibold">Team {matchData.teams[team]} Players</h3>
-                            </div>
                             <div className="border-1 border-sky-500/50 px-2 py-2">
-                                <ul className="mt-4">
-                                {matchData.players[team]
-                                  .filter((player) => player.name.trim() !== "")
-                                  .map((player, index) => (
-                                    <li key={index} className="py-1 border-b-1">
-                                      <label className="text-[16px] font-semibold">{player.name}</label> | {player.runs} Runs | {player.ballsFaced} Balls
-                                    </li>
-                                ))}
-                                </ul>
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="border-b-2">
+                                        <th className="py-2 px-4 text-[16px] font-bold">Batter</th>
+                                        <th className="py-2 px-4 text-[16px] font-bold">Runs</th>
+                                        <th className="py-2 px-4 text-[16px] font-bold">Balls</th>
+                                        <th className="py-2 px-4 text-[16px] font-bold"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {matchData.players[team]
+                                        .filter((player) => player.name.trim() !== "")
+                                        .map((player, index) => (
+                                            <tr key={index} className="border-b">
+                                            <td className="py-1 px-4 text-[16px] font-semibold">{player.name}</td>
+                                            <td className="py-1 px-4">{player.runs}</td>
+                                            <td className="py-1 px-4">{player.ballsFaced}</td>
+                                            <td className="py-1 px-4"></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     ))}
