@@ -24,18 +24,18 @@ function SingleMatchUpdate(){
     return (
     <>
     {matchData ? (
-            <div className="mt-4 px-55 py-4">
-                <h2 className="text-2xl font-extrabold text-center text-gray-800 mb-4">{matchData.teams.teamA} 🆚 {matchData.teams.teamB}</h2>
+            <div className="mt-4 md:px-55 p-4">
+                <h2 className="text-2xl font-extrabold text-center text-gray-800 mb-1">{matchData.teams.teamA} 🆚 {matchData.teams.teamB}</h2>
                 <div className="rounded-lg px-4 py-3 mb-4">
-                    { matchData.tossWin != "" ? 
-                    <h5 className="text-base font-medium text-gray-700 text-center">
-                        <span className="font-semibold text-blue-600">
-                            {matchData.tossWin} won the toss and opt to {matchData.optTo.toLowerCase()} 
-                        </span>
-                    </h5> : "" }
                     { matchData.winner == "" ? <div className="text-center">
                     { matchData.battingTeam != "" ? <h2 className="text-lg font-bold text-red-600"> {matchData.currentInning === 1 ? "First Inning in Progress" : "Second Inning in Progress"} </h2> : "" }
                     </div> : <div className="text-center py-2"><p className="text-violet-500 font-semibold text-lg rounded py-2">{matchData.winner}</p></div> }
+                    { matchData.tossWin != "" ? 
+                    <h3 className="text-base font-medium text-gray-700 text-center">
+                        <span className="font-semibold text-blue-600">
+                            {matchData.tossWin} won the toss and opt to {matchData.optTo.toLowerCase()} 
+                        </span>
+                    </h3> : "" }
                 </div>
 
                 <div className="px-4 gap-4">
