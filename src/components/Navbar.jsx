@@ -7,7 +7,6 @@ import useSeriesAndMatches from "../hooks/useSeriesAndMatches";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { isAdmin, logout } = useContext(AuthContext);
-  console.log("isAdmin:", isAdmin);
   const { allSeries, allMatches } = useSeriesAndMatches();
   
   return (

@@ -40,7 +40,6 @@ function LiveMatchUpdate({ isAdmin }) {
         const matchSnap = await getDoc(matchRef);
         if (matchSnap.exists()) {
           const data = matchSnap.data();
-          console.log(data.overs);
           setMatchData(data);
           setTeams({
             teamA: data.teamA || "",
@@ -66,8 +65,6 @@ function LiveMatchUpdate({ isAdmin }) {
       fetchMatch();
     }
   }, [matchId]);
-
-  console.log("MatchData -> ", matchData);
 
   function debounce(func, delay) {
     let timer;
@@ -103,10 +100,8 @@ function LiveMatchUpdate({ isAdmin }) {
 
   const updatePlayerData = async (matchId, newData) => {
     try {
-      console.log("Players Score:", players);
       const matchRef = doc(db, "matches", matchId);
       await updateDoc(matchRef, newData);
-      console.log("Player data saved successfully!");
     } catch (error) {
       console.error("Error updating player data:", error);
     }
@@ -152,10 +147,6 @@ function LiveMatchUpdate({ isAdmin }) {
     if (currentInning === 2) {
       const firstBattingTeamName = firstBattedTeam;
       const secondBattingTeamName = battingTeam;
-  
-      console.log("firstBattingTeamName", firstBattingTeamName);
-      console.log("secondBattingTeamName", secondBattingTeamName);
-  
       const firstInningScore = firstBattingTeamName === teams.teamA ? scores.teamA : scores.teamB;
       const secondInningScore = secondBattingTeamName === teams.teamA ? scores.teamA : scores.teamB;
       const secondTeamWickets = secondBattingTeamName === teams.teamA ? wicket.teamA : wicket.teamB;
@@ -291,7 +282,6 @@ function LiveMatchUpdate({ isAdmin }) {
     });
 
     // Check if set overs are completed   
-    console.log("Inning:: "+totalValidBalls+"Total Balls: "+(overs * ballsPerOver));
     if (totalValidBalls >= overs * ballsPerOver) {
       console.log("First Inning Done! Switching teams...");
       
@@ -305,13 +295,11 @@ function LiveMatchUpdate({ isAdmin }) {
 
     setScores((prevScores) => {
       const newScores = { ...prevScores, [team]: totalScore };
-      //console.log("Updated Scores:", newScores);
       return newScores;
     });
 
     setWickets((prevWickets) => {
       const newWickets = { ...prevWickets, [team]: totalWickets };
-      //console.log("Updated Wickets:", newWickets);
       debouncedUpdate({
         teams,
         overs,
@@ -395,7 +383,6 @@ function LiveMatchUpdate({ isAdmin }) {
                 </div>
             </div>
         </div>
-
         <div className="grid grid-cols-2 gap-4">
           <div className="border-1 border-sky-500/50 p-2 rounded-tl rounded-tr bg-sky-500/50">
             <h3 className="text-sm md:text-base font-semibold">{teams.teamA} Players</h3>
@@ -653,7 +640,6 @@ function LiveMatchUpdate({ isAdmin }) {
             {overDetails[team].map((over, overIndex) => (
               <div key={overIndex} className="mt-2">
                 <h4 className="font-semibold">Over {overIndex + 1}</h4>
-                {/* {console.log(`Team: ${team}, Over Index: ${overIndex}, Active Over: ${activeOver[team]}`)} */}
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   {over.map((ball, ballIndex) => (
                     <input
