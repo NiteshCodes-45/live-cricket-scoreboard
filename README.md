@@ -1,19 +1,34 @@
-# 🏏 Live Cricket Scoreboard  
-_A real-time, manual-updated cricket scoreboard built with React & Tailwind._  
+# 🏏 Live Cricket Scoreboard
 
-## 🚀 Features  
-✅ Live ball-by-ball score updates  
-✅ No Ball & Wide Ball logic  
-✅ Toss-winning team selection  
-✅ Player & over breakdown tracking  
+A real-time cricket match scoreboard for local tournaments, built using React, Firebase, and Tailwind CSS. Supports live match updates, series and match management, and secure admin access.
 
-## Technologies  
-- **React.js**, **Tailwind CSS**, **Vite**  
+## 🔥 Features
+- Live score updates with Firebase Firestore
+- Admin panel with authentication (Firebase Auth)
+- Create and manage multiple series and matches
+- Player-wise stats entry
+- Responsive UI (mobile + desktop)
 
-## Screenshots  
-![Live Scoreboard](https://your-image-url.com/screenshot.png)  
+## 🚀 Tech Stack
+- React + Vite
+- Tailwind CSS
+- Firebase Firestore & Authentication
+- React Router
+- React Hooks
 
-## Setup & Run  
-1. Clone the repo  
-   ```sh
-   git clone https://github.com/NiteshCodes-45/ .git
+## 🖼️ Screenshots
+> *(Add screenshots of the live match view, admin panel, and match/series creation)*
+![Homepage](src/assets/live-homepage.png)
+![Login Page](src/assets/login-page.png)
+![Login Page](src/assets/Match&Series.png)
+
+## 📦 Installation
+
+```bash
+git clone https://github.com/NiteshCodes-45/live-cricket-scoreboard.git
+cd live-cricket-scoreboard
+npm install
+npm run dev
+
+## Live Demo
+https://live-score-cart.vercel.app/
