@@ -1,40 +1,11 @@
-import { useRef, useEffect, useState } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../firebaseConfig";
+import { useRef } from "react";
 import useSeriesAndMatches from "../hooks/useSeriesAndMatches";
-import noLiveMatchesImg from "/src/assets/no-live-matches.png";
+//import noLiveMatchesImg from "/src/assets/no-live-matches.png";
 import { Link } from 'react-router-dom';
 
 const LiveMatch = ({ matchId = "abc123" }) => {
-  const [matchData, setMatchData] = useState(null);
-  const { allSeries, allMatches, loading } = useSeriesAndMatches();
-
-  const viewMatchScoreboard = (viewMatchId) =>{
-    const matchRef = doc(db, "matches", viewMatchId);
-
-    const unsubscribe = onSnapshot(matchRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setMatchData(docSnap.data());
-      } else {
-        console.log("No such match document!");
-      }
-    });
-    return () => unsubscribe();
-  };
-  
-  // useEffect(() => {
-  //   const matchRef = doc(db, "matches", matchId);
-
-  //   const unsubscribe = onSnapshot(matchRef, (docSnap) => {
-  //     if (docSnap.exists()) {
-  //       setMatchData(docSnap.data());
-  //     } else {
-  //       console.log("No such match document!");
-  //     }
-  //   });
-
-  //   return () => unsubscribe(); // 🧹 Clean up on unmount
-  // }, [matchId]);
+  const { allMatches, loading } = useSeriesAndMatches();
+  //allSeries,
 
   const scrollRef = useRef(null);
 
@@ -170,11 +141,10 @@ const LiveMatch = ({ matchId = "abc123" }) => {
               ))}
           </div>
           
-          { allMatches.length == 0 ?
+          { loading && allMatches.length == 0 ?
             <div className="flex flex-col items-center justify-center text-center text-gray-500 py-10">
-              <img src={noLiveMatchesImg} alt="No Matches" className="w-60 mb-4" />
-              {/* <h2 className="text-xl font-semibold">No live matches right now</h2> */}
-              <h2 className="text-xl font-semibold mt-2">Stay tuned for upcoming matches!</h2>
+              {/* <img src={noLiveMatchesImg} alt="No Matches" className="w-60 mb-4" /> */}
+              <h2 className="text-xl font-semibold mt-2">Fetching live matches stay tune...</h2>
             </div> : ""
           } 
 

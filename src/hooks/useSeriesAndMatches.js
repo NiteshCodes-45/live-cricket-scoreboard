@@ -6,11 +6,12 @@ import { db } from "../firebaseConfig";
 const useSeriesAndMatches = () => {
   const [allSeries, setAllSeries] = useState([]);
   const [allMatches, setAllMatches] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchSeriesAndMatches = async () => {
       try {
+        setLoading(true);
         const seriesSnapshot = await getDocs(collection(db, "series"));
         const matchesSnapshot = await getDocs(collection(db, "matches"));
 
