@@ -24,8 +24,8 @@ function LiveMatchUpdate({ isAdmin }) {
   const [activeOverUpdate, setActiveOverUpdate] = useState({ teamA: 0, teamB: 0 });
   const [prematureMatchOver, setPrematureMatchOver] = useState(false);
   const [players, setPlayers] = useState({
-    teamA: Array.from({ length: 11 }, () => ({ name: "", runs: 0, ballsFaced:0})),  
-    teamB: Array.from({ length: 11 }, () => ({ name: "", runs: 0, ballsFaced:0})),
+    teamA: Array.from({ length: 11 }, () => ({ name: "", runs: 0, ballsFaced:0, four:0, six:0})),  
+    teamB: Array.from({ length: 11 }, () => ({ name: "", runs: 0, ballsFaced:0, four:0, six:0})),
   });
 
   //const matchId = currentMatch?.id || "abc123"; // fallback if null

@@ -24,7 +24,7 @@ function SingleMatchUpdate(){
     return (
     <>
     {matchData ? (
-            <div className="mt-4 md:px-55 p-4">
+            <div className="mt-4 md:px-55">
                 <h2 className="text-2xl font-extrabold text-center text-gray-800 mb-1">{matchData.teams.teamA} 🆚 {matchData.teams.teamB}</h2>
                 <div className="rounded-lg px-4 py-3 mb-4">
                     { matchData.winner == "" ? <div className="text-center">
@@ -36,6 +36,16 @@ function SingleMatchUpdate(){
                             {matchData.tossWin} won the toss and opt to {matchData.optTo.toLowerCase()} 
                         </span>
                     </h3> : "" }
+                    {(matchData.winner == "" && matchData.currentInning === 2) && (
+                        <p className="text-base font-medium text-gray-700 text-center">
+                            {matchData.battingTeam} need {" "}
+                            {matchData.battingTeam === matchData.teams.teamA
+                            ? matchData.scores.teamB + 1 - matchData.scores.teamA
+                            : matchData.scores.teamA + 1 - matchData.scores.teamB}{" "}
+                            runs to win
+                        </p>
+                        )
+                    }
                 </div>
 
                 <div className="px-4 gap-4">
@@ -57,13 +67,15 @@ function SingleMatchUpdate(){
                                         {team === "teamA" ? matchData.scores.teamA : matchData.scores.teamB} / {team === "teamA" ? matchData.wicket.teamA : matchData.wicket.teamB} ( {team === "teamA" ? matchData.activeOverUpdate.teamA : matchData.activeOverUpdate.teamB} Overs)</h4>
                                 </div>
                             </div>
-                            <div className="border-1 border-sky-500/50 px-2 py-2 mt-2">
+                            <div className="border-1 border-sky-500/50 px-2 py-2 mt-2 overflow-x-auto w-full">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="border-b-2">
                                         <th className="py-2 px-4 text-[16px] font-bold">Batter</th>
                                         <th className="py-2 px-4 text-[16px] font-bold">Runs</th>
                                         <th className="py-2 px-4 text-[16px] font-bold">Balls</th>
+                                        <th className="py-2 px-4 text-[16px] font-bold">Fours</th>
+                                        <th className="py-2 px-4 text-[16px] font-bold">Six</th>
                                         <th className="py-2 px-4 text-[16px] font-bold">SR</th>
                                         </tr>
                                     </thead>
@@ -75,6 +87,8 @@ function SingleMatchUpdate(){
                                             <td className="py-1 px-4 text-[16px] font-semibold">{player.name}</td>
                                             <td className="py-1 px-4">{player.runs}</td>
                                             <td className="py-1 px-4">{player.ballsFaced}</td>
+                                            <td className="py-1 px-4">{player.four}</td>
+                                            <td className="py-1 px-4">{player.six}</td>
                                             {/* Strike Rate = (Total Runs Scored / Total Balls Faced) * 100  */}
                                             <td className="py-1 px-4">{((player.runs / player.ballsFaced ) * 100).toFixed(2)}</td>
                                             </tr>
