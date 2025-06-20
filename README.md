@@ -1,31 +1,38 @@
-# Live Cricket Scoreboard
-
-A real-time cricket match scoreboard for local tournaments, built using React, Firebase, and Tailwind CSS. Supports live match updates, series and match management, and secure admin access.
+## Live Cricket Scoreboard
+A real-time cricket scoreboard web app built with React, Firebase, and Vite. Designed for both public viewers and authenticated admins to update and track live cricket match scores seamlessly.
 
 ## Features
-- Live score updates with Firebase Firestore
-- Admin panel with authentication (Firebase Auth)
-- Create and manage multiple series and matches
-- Player-wise stats entry
-- Responsive UI (mobile + desktop)
+### Public Panel
+- View live cricket scores, wickets, overs, and player details.
+- Responsive UI for mobile, tablet, and desktop.
+
+### Admin Panel
+- Secure login via Firebase Authentication.
+- Add/edit teams, players, scores, overs, and match status in real-time.
+- Auto-sync updates using Firestore.
 
 ## Tech Stack
-- React + Vite
-- Tailwind CSS
-- Firebase Firestore & Authentication
-- React Router
-- React Hooks
+Frontend: React.js, Tailwind CSS, Vite
+Backend: Firebase Firestore (Database), Firebase Authentication
+Deployment: Vercel
+Version Control: Git, GitHub
 
 ## Screenshots
 ![Homepage](src/assets/live-homepage.png)
 ![Login Page](src/assets/login-page.png)
 ![Login Page](src/assets/Match&Series.png)
 
-## Installation
+## License
+This project is licensed under the [MIT License](LICENSE).
+
+## Live Demo
 https://live-score-cart.vercel.app/
 
-## Installation
+## Author
+**Nitesh Chaughule**
+[LinkedIn](https://www.linkedin.com/in/nitesh-chaughule-6637aa309) | [GitHub](https://github.com/NiteshCodes-45)
 
+## Installation
 ```bash
 git clone https://github.com/NiteshCodes-45/live-cricket-scoreboard.git
 cd live-cricket-scoreboard
