@@ -36,5 +36,11 @@ https://live-score-cart.vercel.app/
 ```bash
 git clone https://github.com/NiteshCodes-45/live-cricket-scoreboard.git
 cd live-cricket-scoreboard
-npm install
+
+## Setup Instructions
+1. Copy the `.env.example` file to `.env`
+2. Fill in your Firebase credentials
+3. Run `npm install` to install dependencies
+4. Start the development server:
+```bash
 npm run dev
